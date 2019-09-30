@@ -1,4 +1,7 @@
-class Player:
+from abc import ABC, abstractmethod
+
+
+class Player(ABC):
     def __init__(self, chips):
         self.chips = chips
         self.hand = []
@@ -18,3 +21,7 @@ class Player:
 
     def burn_hand(self):
         self.hand = []
+
+    @abstractmethod
+    def make_move(self, actions, game_state):
+        pass
