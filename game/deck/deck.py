@@ -13,13 +13,16 @@ class Deck:
     def shuffle(self):
         shuffle(self.cards)
 
-    def deal(self, amount):
+    def deal(self, amount=1):
         to_deal = self.cards[:amount]
         self.cards = self.cards[amount:]
 
-        return to_deal
+        if amount == 1:
+            return to_deal[0]
+        else:
+            return to_deal
 
-    def burn(self, amount):
+    def burn(self, amount=1):
         self.cards = self.cards[amount:]
 
     def create_new_deck(self):

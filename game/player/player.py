@@ -19,8 +19,11 @@ class Player(ABC):
     def show_hand(self):
         return self.hand
 
-    def burn_hand(self):
+    def destroy_hand(self):
         self.hand = []
+
+    def get_amount_of_chips(self):
+        return self.chips
 
     @abstractmethod
     def make_move(self, actions, game_state):
