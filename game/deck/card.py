@@ -14,6 +14,16 @@ class Card:
         return self.value
 
     def __str__(self):
-        return str(self.get_rank()) + '(' + str(self.get_suit() + ')::' +
-                                                (12 - (len(self.get_suit()) + len(self.get_rank()))) * ' ' +
-                                                str(self.get_value()))
+        return str(self.get_rank()) + '(' + str(self.get_suit() + ')')
+
+    def __eq__(self, other):
+        return self.value == other.get_value() and self.suit == other.get_suit()
+
+    def __lt__(self, other):
+        return self.value < other.get_value()
+
+    def __gt__(self, other):
+        return self.value > other.get_value()
+
+    def __repr__(self):
+        return str(self)

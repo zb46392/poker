@@ -16,7 +16,7 @@ class Player(ABC):
     def receive_cards(self, cards: list):
         self.hand += cards
 
-    def show_hand(self):
+    def get_hand(self):
         return self.hand
 
     def destroy_hand(self):
@@ -26,5 +26,5 @@ class Player(ABC):
         return self.chips
 
     @abstractmethod
-    def make_move(self, actions, game_state):
+    def make_move(self, possible_moves, game_state):
         pass
