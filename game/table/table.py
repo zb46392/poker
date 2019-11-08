@@ -20,11 +20,9 @@ class Table:
         self.deck = Deck()
         self.dealer = None
         self.players = self.init_players(list_of_players_classes)
-        self.big_blind_player = None
         self.pot = 0
         self.community_cards = list()
         self.current_bet = 0
-        self.highest_better = None
         self.small_bet = Table.SMALL_BET
         self.big_bet = Table.BIG_BET
         self.current_raise = self.small_bet
@@ -63,37 +61,23 @@ class Table:
         self.deck.shuffle()
         self.deal_cards()
         self.collect_blinds()
-        self.current_raise = self.small_bet
+        self.current_raise = self.current_bet = self.small_bet
 
-        self.init_betting_round(self.get_next_player(self.highest_better))
-        self.big_blind_player = None
+        self.init_betting_round(self.get_next_player(self.dealer, position=3))
 
-        if self.have_all_folded_but_one():
-            self.is_game_active = False
+        self.update_game_active_state()
 
     def init_flop_phase(self):
-        pass
-        '''
-        burn card
-        flop
-        player action
-        '''
+        if self.is_game_active:
+            self.init_common_phase(self.small_bet, cards_to_deal=3)
 
     def init_turn_phase(self):
-        pass
-        '''
-        burn card 
-        turn
-        player action
-        '''
+        if self.is_game_active:
+            self.init_common_phase(self.big_bet)
 
     def init_river_phase(self):
-        pass
-        '''
-        burn card
-        river
-        player action
-        '''
+        if self.is_game_active:
+            self.init_common_phase(self.big_bet)
 
     def init_showdown_phase(self):
         pass
@@ -107,7 +91,7 @@ class Table:
 
     def deal_one_round(self):
         for player in self.players:
-            player.receive_card(self.deck.deal())
+            player.receive_cards(self.deck.deal())
 
     def collect_blinds(self):
         player = self.get_next_player(self.dealer)
@@ -116,8 +100,6 @@ class Table:
         player = self.get_next_player(player)
         self.collect_blind(player, self.small_bet)
 
-        self.highest_better = player
-        self.big_blind_player = player
         self.current_bet = self.small_bet
 
     def collect_blind(self, player: Player, blind: int):
@@ -133,15 +115,20 @@ class Table:
     def collect_bet(self, player: Player, amount: int):
         self.pot += player.spend_chips(amount)
 
-    def get_next_player(self, current_player: Player):
-        return self.players[current_player]['next_player']
+    def get_next_player(self, current_player: Player, position=1):
+        player = current_player
+        for _ in range(position):
+            player = self.players[player]['next_player']
+
+        return player
 
     def get_dealer(self):
         return self.dealer
 
-    def init_betting_round(self, player: Player):
+    def init_betting_round(self, stopping_player: Player):
+        player = stopping_player
 
-        while player is not self.highest_better or self.players[player]['current_move'] is None:
+        while True:
             if self.have_all_folded_but_one():
                 self.is_game_active = False
                 break
@@ -150,14 +137,21 @@ class Table:
 
             if moves is None:
                 player = self.get_next_player(player)
+                if player is stopping_player:
+                    break
                 continue
 
             move = player.make_move(moves, self.generate_game_state())
 
             self.execute_player_move(player, move)
+            if self.players[player]['current_bet'] > self.current_bet:
+                stopping_player = player
+                self.current_bet = self.players[player]['current_bet']
 
-            if self.big_blind_player is None or player is not self.big_blind_player:
-                player = self.get_next_player(player)
+            player = self.get_next_player(player)
+
+            if player is stopping_player:
+                break
 
     def have_all_folded_but_one(self):
         if self.count_folded_players() < len(self.players) - 1:
@@ -240,7 +234,6 @@ class Table:
             amount = self.calculate_amount_to_raise(player)
             self.collect_bet(player, amount)
             self.players[player]['current_bet'] += amount
-            self.highest_better = player
             self.raise_cnt += 1
 
         elif move is Table.Moves.ALL_IN:
@@ -255,6 +248,24 @@ class Table:
 
     def calculate_amount_to_raise(self, player: Player):
         return self.calculate_amount_to_call(player) + self.current_raise
+
+    def update_game_active_state(self):
+        if self.have_all_folded_but_one():
+            self.is_game_active = False
+
+    def init_common_phase(self, bet_size: int, cards_to_deal: int = 1):
+        self.prepare_common_phase(bet_size)
+
+        self.deck.burn()
+        self.community_cards += self.deck.deal(cards_to_deal)
+        self.init_betting_round(self.get_next_player(self.dealer))
+
+        self.update_game_active_state()
+
+    def prepare_common_phase(self, bet_amount: int):
+        self.current_raise = bet_amount
+        self.raise_cnt = 0
+        self.current_bet = 0
 
     def print_player_info(self):
         print('--- PLAYER INFO ---')
@@ -279,8 +290,6 @@ class Table:
         print('BIG_BET:\t' + str(self.big_bet))
         print('POT:\t\t' + str(self.pot))
         print('DEALER:\t\t' + str(self.players[self.dealer]['name']))
-        print('HIGHEST_BETTER:\t' + (str(self.highest_better) if self.highest_better is None
-              else str(self.players[self.highest_better]['name'])))
         print('CURRENT_BET:\t' + str(self.current_bet))
         print('CURRENT_RAISE:\t' + str(self.current_raise))
         print('RAISE_CNT:\t' + str(self.raise_cnt))
