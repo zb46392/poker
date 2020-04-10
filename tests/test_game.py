@@ -1,18 +1,19 @@
 from unittest import TestCase
-from game import Table
-from . import create_dummy_classes
+from game import Moves, Table
+from .dummy_player import create_dummy_classes
 
 
 class TestGame(TestCase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.table = Table(create_dummy_classes(3))
-        self.player_1 = self.table.get_dealer()
-        self.player_2 = self.table.get_next_player(self.player_1)
-        self.player_3 = self.table.get_next_player(self.player_2)
 
-        self.moves = self.table.Moves
+        self.player_1 = self.table._players
+        self.player_2 = self.player_1.next
+        self.player_3 = self.player_2.next
+
+        self.moves = Moves
 
     def reset(self):
         self.__init__()

@@ -1,17 +1,18 @@
 from . import TestGame
-from game.deck.card import Card
+from game import Card, FinalHandType
+from typing import List
 
 
 class TestFindStrongestFinalHand(TestGame):
-    def prepare_game(self, community_cards, player_1_cards, player_2_cards, player_3_cards):
-        for card in community_cards:
-            self.table.community_cards.append(card)
+    def prepare_game(self, community_cards: List[Card],
+                     player_1_cards: List[Card], player_2_cards: List[Card], player_3_cards: List[Card]) -> None:
+        self.table._community_cards = community_cards
 
-        self.player_1.receive_cards(player_1_cards)
-        self.player_2.receive_cards(player_2_cards)
-        self.player_3.receive_cards(player_3_cards)
+        self.player_1.basic_player.receive_cards(player_1_cards)
+        self.player_2.basic_player.receive_cards(player_2_cards)
+        self.player_3.basic_player.receive_cards(player_3_cards)
 
-    def test_high_card(self):
+    def test_high_card(self) -> None:
         self.prepare_game([
             Card('2', 'Heart', 1),
             Card('3', 'Diamond', 2),
@@ -26,19 +27,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.HIGH_CARD,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(8, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.HIGH_CARD, self.player_1.final_hand_type)
+        self.assertEqual(8, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.HIGH_CARD,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(10, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.HIGH_CARD, self.player_2.final_hand_type)
+        self.assertEqual(10, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.HIGH_CARD,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(13, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.HIGH_CARD, self.player_3.final_hand_type)
+        self.assertEqual(13, self.player_3.score)
 
-    def test_pair(self):
+    def test_pair(self) -> None:
         self.prepare_game([
             Card('2', 'Heart', 1),
             Card('Ace', 'Diamond', 13),
@@ -53,19 +51,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.PAIR,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(20, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.PAIR, self.player_1.final_hand_type)
+        self.assertEqual(20, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.PAIR,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(260, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.PAIR, self.player_2.final_hand_type)
+        self.assertEqual(260, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.PAIR,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(220, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.PAIR, self.player_3.final_hand_type)
+        self.assertEqual(220, self.player_3.score)
 
-    def test_two_pairs(self):
+    def test_two_pairs(self) -> None:
         self.prepare_game([
             Card('2', 'Diamond', 1),
             Card('3', 'Spade', 2),
@@ -80,19 +75,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.TWO_PAIRS,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(601, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.TWO_PAIRS, self.player_1.final_hand_type)
+        self.assertEqual(601, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.TWO_PAIRS,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(1502, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.TWO_PAIRS, self.player_2.final_hand_type)
+        self.assertEqual(1502, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.TWO_PAIRS,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(3912, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.TWO_PAIRS, self.player_3.final_hand_type)
+        self.assertEqual(3912, self.player_3.score)
 
-    def tris(self):
+    def tris(self) -> None:
         self.prepare_game([
             Card('King', 'Club', 13),
             Card('2', 'Club', 1),
@@ -107,19 +99,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.TRIS,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(4000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.TRIS, self.player_1.final_hand_type)
+        self.assertEqual(4000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.TRIS,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(32000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.TRIS, self.player_2.final_hand_type)
+        self.assertEqual(32000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.TRIS,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(52000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.TRIS, self.player_3.final_hand_type)
+        self.assertEqual(52000, self.player_3.score)
 
-    def test_straight(self):
+    def test_straight(self) -> None:
         self.prepare_game([
             Card('2', 'Club', 1),
             Card('4', 'Heart', 3),
@@ -134,17 +123,14 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(60000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_1.final_hand_type)
+        self.assertEqual(60000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(105000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_2.final_hand_type)
+        self.assertEqual(105000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(120000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_3.final_hand_type)
+        self.assertEqual(120000, self.player_3.score)
 
         self.reset()
         self.prepare_game([
@@ -161,19 +147,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(195000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_1.final_hand_type)
+        self.assertEqual(195000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(180000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_2.final_hand_type)
+        self.assertEqual(180000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(165000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_3.final_hand_type)
+        self.assertEqual(165000, self.player_3.score)
 
-    def test_flush(self):
+    def test_flush(self) -> None:
         self.prepare_game([
             Card('3', 'Club', 2),
             Card('Queen', 'Diamond', 11),
@@ -188,17 +171,14 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(429000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_1.final_hand_type)
+        self.assertEqual(429000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(396000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_2.final_hand_type)
+        self.assertEqual(396000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(363000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_3.final_hand_type)
+        self.assertEqual(363000, self.player_3.score)
 
         self.reset()
         self.prepare_game([
@@ -215,19 +195,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(198000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_1.final_hand_type)
+        self.assertEqual(198000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(264000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_2.final_hand_type)
+        self.assertEqual(264000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FLUSH,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(297000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.FLUSH, self.player_3.final_hand_type)
+        self.assertEqual(297000, self.player_3.score)
 
-    def test_full_house(self):
+    def test_full_house(self) -> None:
         self.prepare_game([
             Card('Ace', 'Heart', 13),
             Card('2', 'Diamond', 1),
@@ -242,17 +219,14 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(500002, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_1.final_hand_type)
+        self.assertEqual(500002, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(1000001, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_2.final_hand_type)
+        self.assertEqual(1000001, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(1000001, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_3.final_hand_type)
+        self.assertEqual(1000001, self.player_3.score)
 
         self.reset()
         self.prepare_game([
@@ -269,19 +243,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(6500012, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_1.final_hand_type)
+        self.assertEqual(6500012, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(6000013, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_2.final_hand_type)
+        self.assertEqual(6000013, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(6000002, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_3.final_hand_type)
+        self.assertEqual(6000002, self.player_3.score)
 
-    def test_poker(self):
+    def test_poker(self) -> None:
         self.prepare_game([
             Card('2', 'Spade', 1),
             Card('2', 'Club', 1),
@@ -296,19 +267,16 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.POKER,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(6600000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.POKER, self.player_1.final_hand_type)
+        self.assertEqual(6600000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.POKER,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(85800000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.POKER, self.player_2.final_hand_type)
+        self.assertEqual(85800000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.FULL_HOUSE,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(6000013, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.FULL_HOUSE, self.player_3.final_hand_type)
+        self.assertEqual(6000013, self.player_3.score)
 
-    def test_straight_flush(self):
+    def test_straight_flush(self) -> None:
         self.prepare_game([
             Card('3', 'Heart', 2),
             Card('4', 'Heart', 3),
@@ -323,17 +291,14 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT_FLUSH,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(86000000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT_FLUSH, self.player_1.final_hand_type)
+        self.assertEqual(86000000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(120000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_2.final_hand_type)
+        self.assertEqual(120000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT_FLUSH,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(129000000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT_FLUSH, self.player_3.final_hand_type)
+        self.assertEqual(129000000, self.player_3.score)
 
         self.reset()
         self.prepare_game([
@@ -350,14 +315,11 @@ class TestFindStrongestFinalHand(TestGame):
 
         self.table.find_players_final_hand()
 
-        self.assertEqual(self.table.FinalHandMultipliers.ROYAL_FLUSH,
-                         self.table.players[self.player_1]['final_hand_type'])
-        self.assertEqual(286000000, self.table.players[self.player_1]['score'])
+        self.assertEqual(FinalHandType.ROYAL_FLUSH, self.player_1.final_hand_type)
+        self.assertEqual(286000000, self.player_1.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT,
-                         self.table.players[self.player_2]['final_hand_type'])
-        self.assertEqual(165000, self.table.players[self.player_2]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT, self.player_2.final_hand_type)
+        self.assertEqual(165000, self.player_2.score)
 
-        self.assertEqual(self.table.FinalHandMultipliers.STRAIGHT_FLUSH,
-                         self.table.players[self.player_3]['final_hand_type'])
-        self.assertEqual(236500000, self.table.players[self.player_3]['score'])
+        self.assertEqual(FinalHandType.STRAIGHT_FLUSH, self.player_3.final_hand_type)
+        self.assertEqual(236500000, self.player_3.score)

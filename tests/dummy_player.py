@@ -1,11 +1,6 @@
-from game import Player
+from game import Dummy
+from typing import List, Type
 
 
-class Dummy(Player):
-
-    def make_move(self, possible_moves, game_state):
-        return possible_moves[0]
-
-
-def create_dummy_classes(amount):
+def create_dummy_classes(amount: int) -> List[Type[Dummy]]:
     return [Dummy for _ in range(amount)]
