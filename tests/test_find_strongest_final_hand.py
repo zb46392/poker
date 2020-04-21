@@ -8,9 +8,9 @@ class TestFindStrongestFinalHand(TestGame):
                      player_1_cards: List[Card], player_2_cards: List[Card], player_3_cards: List[Card]) -> None:
         self.table._community_cards = community_cards
 
-        self.player_1.basic_player.receive_cards(player_1_cards)
-        self.player_2.basic_player.receive_cards(player_2_cards)
-        self.player_3.basic_player.receive_cards(player_3_cards)
+        self.player_1.receive_cards(player_1_cards)
+        self.player_2.receive_cards(player_2_cards)
+        self.player_3.receive_cards(player_3_cards)
 
     def test_high_card(self) -> None:
         self.prepare_game([

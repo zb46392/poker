@@ -1,23 +1,25 @@
 from copy import deepcopy
-from game import Card, FinalHandType, Moves, Player as Basic_Player
+from game import Card, FinalHandType, Moves, Player as Basic_Player, State
 from typing import List, Optional
 
 
 class Players:
     def __init__(self, basic_player: Basic_Player, name: str = 'Player') -> None:
         self._basic_player = basic_player
+        self._basic_player_type = basic_player.__class__.__name__
         self._name = name
         self._current_bet = 0
         self._total_bet = 0
         self._score = 0
+        self._is_active = True
         self._current_move = None
         self._final_hand = None
         self._final_hand_type = None
         self._next = None
 
     @property
-    def basic_player(self) -> Basic_Player:
-        return self._basic_player
+    def player_type(self) -> str:
+        return self._basic_player_type
 
     @property
     def name(self) -> str:
@@ -72,12 +74,51 @@ class Players:
         self._score = score
 
     @property
+    def is_active(self) -> bool:
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, state: bool) -> None:
+        self._is_active = state
+
+    @property
     def next(self) -> 'Players':
         return self._next
 
     @next.setter
     def next(self, player: 'Players') -> None:
         self._next = player
+
+    def receive_cards(self, cards: List[Card]) -> None:
+        self._basic_player.receive_cards(cards)
+
+    def get_amount_of_chips(self) -> int:
+        return self._basic_player.get_amount_of_chips()
+
+    def spend_chips(self, amount: int) -> int:
+        return self._basic_player.spend_chips(amount)
+
+    def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
+        return self._basic_player.make_move(possible_moves, game_state)
+
+    def get_hand(self) -> List[Card]:
+        return self._basic_player.get_hand()
+
+    def receive_chips(self, amount: int) -> None:
+        self._basic_player.receive_chips(amount)
+
+    def destroy_hand(self) -> None:
+        self._basic_player.destroy_hand()
+
+    def reset(self) -> None:
+        self._basic_player.destroy_hand()
+        self._current_move = None
+        self._current_bet = 0
+        self._total_bet = 0
+        self._final_hand = None
+        self._final_hand_type = None
+        self._score = 0
+        self._is_active = True
 
     def append(self, player: 'Players') -> None:
         tmp = self
@@ -103,6 +144,12 @@ class Players:
 
         return next_player
 
+    def remove_player(self, player: 'Players') -> None:
+        for p in self:
+            if p.next == player:
+                p.next = player.next
+                player.next = None
+
     def find(self, player_to_find: 'Players') -> Optional['Players']:
         if player_to_find == self:
             return player_to_find
@@ -117,6 +164,15 @@ class Players:
 
         return player
 
+    def find_by_move(self, move: Moves) -> List['Players']:
+        players = []
+
+        for player in self:
+            if player.current_move is move:
+                players.append(player)
+
+        return players
+
     def count(self) -> int:
         player = self._next
         cnt = 1
@@ -126,6 +182,15 @@ class Players:
             player = player.next
 
         return cnt
+
+    def count_active(self) -> int:
+        active_amount = 0
+
+        for player in self:
+            if player._is_active:
+                active_amount += 1
+
+        return active_amount
 
     def clone(self) -> 'Players':
         return deepcopy(self)

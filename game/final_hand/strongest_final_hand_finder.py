@@ -143,7 +143,8 @@ class StrongestFinalHandFinder:
             if card not in selected_cards:
                 high_value_cards.append(card)
                 if len(high_value_cards) == amount:
-                    return high_value_cards
+                    break
+        return high_value_cards
 
     @staticmethod
     def _try_find_full_house(sorted_cards: List[Card]) -> Optional[List[Card]]:
