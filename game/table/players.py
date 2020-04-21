@@ -1,5 +1,5 @@
 from copy import deepcopy
-from game import Card, FinalHandType, Moves, Player as Basic_Player
+from game import Card, FinalHandType, Moves, Player as Basic_Player, State
 from typing import List, Optional
 
 
@@ -14,10 +14,6 @@ class Players:
         self._final_hand = None
         self._final_hand_type = None
         self._next = None
-
-    @property
-    def basic_player(self) -> Basic_Player:
-        return self._basic_player
 
     @property
     def name(self) -> str:
@@ -78,6 +74,36 @@ class Players:
     @next.setter
     def next(self, player: 'Players') -> None:
         self._next = player
+
+    def receive_cards(self, cards: List[Card]) -> None:
+        self._basic_player.receive_cards(cards)
+
+    def get_amount_of_chips(self) -> int:
+        return self._basic_player.get_amount_of_chips()
+
+    def spend_chips(self, amount: int) -> int:
+        return self._basic_player.spend_chips(amount)
+
+    def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
+        return self._basic_player.make_move(possible_moves, game_state)
+
+    def get_hand(self) -> List[Card]:
+        return self._basic_player.get_hand()
+
+    def receive_chips(self, amount: int) -> None:
+        self._basic_player.receive_chips(amount)
+
+    def destroy_hand(self) -> None:
+        self._basic_player.destroy_hand()
+
+    def reset(self):
+        self._basic_player.destroy_hand()
+        self._current_move = None
+        self._current_bet = 0
+        self._total_bet = 0
+        self._final_hand = None
+        self._final_hand_type = None
+        self._score = 0
 
     def append(self, player: 'Players') -> None:
         tmp = self

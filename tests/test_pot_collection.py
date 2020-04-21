@@ -22,10 +22,10 @@ class TestPotCollection(TestGame):
         for card in community_cards:
             self.table._community_cards.append(card)
 
-        self.player_1.basic_player.receive_cards(player_1_cards)
-        self.player_2.basic_player.receive_cards(player_2_cards)
-        self.player_3.basic_player.receive_cards(player_3_cards)
-        self.player_4.basic_player.receive_cards(player_4_cards)
+        self.player_1.receive_cards(player_1_cards)
+        self.player_2.receive_cards(player_2_cards)
+        self.player_3.receive_cards(player_3_cards)
+        self.player_4.receive_cards(player_4_cards)
 
     def test_usual(self) -> None:
         self.prepare_game([
@@ -43,10 +43,10 @@ class TestPotCollection(TestGame):
 
         self.table._pot = 100
         self.table.init_showdown_phase()
-        self.assertEqual(200, self.player_1.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_2.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_3.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_4.basic_player.get_amount_of_chips())
+        self.assertEqual(200, self.player_1.get_amount_of_chips())
+        self.assertEqual(100, self.player_2.get_amount_of_chips())
+        self.assertEqual(100, self.player_3.get_amount_of_chips())
+        self.assertEqual(100, self.player_4.get_amount_of_chips())
         self.assertEqual(0, self.table._pot)
 
     def test_draw_win_high_card(self) -> None:
@@ -81,10 +81,10 @@ class TestPotCollection(TestGame):
         self.table._pot = 40
         self.table.init_showdown_phase()
 
-        self.assertEqual(100, self.player_1.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_2.basic_player.get_amount_of_chips())
-        self.assertEqual(140, self.player_3.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_4.basic_player.get_amount_of_chips())
+        self.assertEqual(100, self.player_1.get_amount_of_chips())
+        self.assertEqual(100, self.player_2.get_amount_of_chips())
+        self.assertEqual(140, self.player_3.get_amount_of_chips())
+        self.assertEqual(100, self.player_4.get_amount_of_chips())
 
     def test_draw_split_pot_with_leftover(self) -> None:
         """
@@ -120,10 +120,10 @@ class TestPotCollection(TestGame):
         self.table._pot = 80
         self.table.init_showdown_phase()
 
-        self.assertEqual(126, self.player_1.basic_player.get_amount_of_chips())
-        self.assertEqual(126, self.player_2.basic_player.get_amount_of_chips())
-        self.assertEqual(126, self.player_3.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_4.basic_player.get_amount_of_chips())
+        self.assertEqual(126, self.player_1.get_amount_of_chips())
+        self.assertEqual(126, self.player_2.get_amount_of_chips())
+        self.assertEqual(126, self.player_3.get_amount_of_chips())
+        self.assertEqual(100, self.player_4.get_amount_of_chips())
         self.assertEqual(2, self.table._pot_leftover)
 
     def test_all_in_winner(self) -> None:
@@ -163,10 +163,10 @@ class TestPotCollection(TestGame):
         self.table._pot = 27
         self.table.init_showdown_phase()
 
-        self.assertEqual(112, self.player_1.basic_player.get_amount_of_chips())
-        self.assertEqual(100, self.player_2.basic_player.get_amount_of_chips())
-        self.assertEqual(107, self.player_3.basic_player.get_amount_of_chips())
-        self.assertEqual(107, self.player_4.basic_player.get_amount_of_chips())
+        self.assertEqual(112, self.player_1.get_amount_of_chips())
+        self.assertEqual(100, self.player_2.get_amount_of_chips())
+        self.assertEqual(107, self.player_3.get_amount_of_chips())
+        self.assertEqual(107, self.player_4.get_amount_of_chips())
         self.assertEqual(1, self.table._pot_leftover)
 
     def test_draw_with_all_in(self) -> None:
@@ -203,7 +203,7 @@ class TestPotCollection(TestGame):
         self.table._pot = 52
         self.table.init_showdown_phase()
 
-        self.assertEqual(107, self.player_1.basic_player.get_amount_of_chips())
-        self.assertEqual(115, self.player_2.basic_player.get_amount_of_chips())
-        self.assertEqual(115, self.player_3.basic_player.get_amount_of_chips())
-        self.assertEqual(115, self.player_4.basic_player.get_amount_of_chips())
+        self.assertEqual(107, self.player_1.get_amount_of_chips())
+        self.assertEqual(115, self.player_2.get_amount_of_chips())
+        self.assertEqual(115, self.player_3.get_amount_of_chips())
+        self.assertEqual(115, self.player_4.get_amount_of_chips())

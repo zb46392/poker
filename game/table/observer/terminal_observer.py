@@ -10,10 +10,10 @@ class TerminalObserver(BaseObserver):
         print()
         for player in state.players:
             print('   NAME:\t' + player.name)
-            print('   HAND:\t' + str(player.basic_player.get_hand()))
-            print('   CHIPS:\t' + str(player.basic_player.get_amount_of_chips()))
+            print('   HAND:\t' + str(player.get_hand()))
+            print('   CHIPS:\t' + str(player.get_amount_of_chips()))
             print('   MOVE:\t' + str(player.current_move))
-            print('   BET:\t' + str(player.current_bet))
+            print('   BET:\t\t' + str(player.current_bet))
             print('   FINAL:\t' + str(player.final_hand) + '\t' + str(player.final_hand_type))
             print('   SCORE:\t' + str(player.score))
             print()

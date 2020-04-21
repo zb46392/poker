@@ -2,7 +2,7 @@ from .observer import State as ObserverState, BaseObserver
 from .observers import Observers
 from .players import Players as TablePlayers
 from copy import deepcopy
-from game import Deck, Moves, Player as BasicPlayer, State, StrongestFinalHandFinder
+from game import Deck, Moves, Phases, Player as BasicPlayer, State, StrongestFinalHandFinder
 from typing import Dict, List, Optional, Type
 
 
@@ -23,6 +23,7 @@ class Table:
         self._big_bet = self.BIG_BET
         self._current_raise = self._small_bet
         self._raise_cnt = 0
+        self._is_round_active = True
         self._is_game_active = True
         self._observers = Observers()
 
@@ -61,52 +62,33 @@ class Table:
         self.init_betting_round(self._players.get_by_position(3))
         self._pot += self.take_from_pot_leftover(self._pot_leftover)
 
-        self.update_game_active_state()
-        self.notify_observers(ObserverState(players=self._players.clone(),
-                                            community_cards=deepcopy(self._community_cards),
-                                            phase='PRE FLOP',
-                                            pot=self._pot
-                                            ))
+        self.update_round_active_state()
+        
+        self._notify_observers(Phases.PRE_FLOP)
 
     def init_flop_phase(self) -> None:
-        if self._is_game_active:
+        if self._is_round_active:
             self.init_common_phase(self._small_bet, cards_to_deal=3)
-
-        self.notify_observers(ObserverState(players=self._players.clone(),
-                                            community_cards=deepcopy(self._community_cards),
-                                            phase='FLOP',
-                                            pot=self._pot
-                                            ))
+            
+        self._notify_observers(Phases.FLOP)
 
     def init_turn_phase(self) -> None:
-        if self._is_game_active:
+        if self._is_round_active:
             self.init_common_phase(self._big_bet)
-
-        self.notify_observers(ObserverState(players=self._players.clone(),
-                                            community_cards=deepcopy(self._community_cards),
-                                            phase='TURN',
-                                            pot=self._pot
-                                            ))
+            
+        self._notify_observers(Phases.TURN)
 
     def init_river_phase(self) -> None:
-        if self._is_game_active:
+        if self._is_round_active:
             self.init_common_phase(self._big_bet)
-
-        self.notify_observers(ObserverState(players=self._players.clone(),
-                                            community_cards=deepcopy(self._community_cards),
-                                            phase='RIVER',
-                                            pot=self._pot
-                                            ))
+            
+        self._notify_observers(Phases.RIVER)
 
     def init_showdown_phase(self) -> None:
         self.find_players_final_hand()
         self.init_pot_collection()
-
-        self.notify_observers(ObserverState(players=self._players.clone(),
-                                            community_cards=deepcopy(self._community_cards),
-                                            phase='SHOWDOWN',
-                                            pot=self._pot
-                                            ))
+        
+        self._notify_observers(Phases.SHOWDOWN)
 
     def deal_cards(self) -> None:
         for _ in range(2):
@@ -114,7 +96,7 @@ class Table:
 
     def deal_one_round(self) -> None:
         for player in self._players:
-            player.basic_player.receive_cards(self._deck.deal())
+            player.receive_cards(self._deck.deal())
 
     def collect_blinds(self) -> None:
         player = self._players.next
@@ -126,24 +108,24 @@ class Table:
         self._current_bet = self._small_bet
 
     def collect_blind(self, player: TablePlayers, blind: int) -> None:
-        if player.basic_player.get_amount_of_chips() > blind:
+        if player.get_amount_of_chips() > blind:
             self.collect_bet(player, blind)
             player.current_bet = blind
         else:
-            amount = player.basic_player.get_amount_of_chips()
+            amount = player.get_amount_of_chips()
             self.collect_bet(player, amount)
             player.current_bet = amount
             player.current_move = Moves.ALL_IN
 
     def collect_bet(self, player: TablePlayers, amount: int) -> None:
-        self._pot += player.basic_player.spend_chips(amount)
+        self._pot += player.spend_chips(amount)
 
     def init_betting_round(self, stopping_player: TablePlayers) -> None:
         player = stopping_player
 
         while True:
             if self.have_all_folded_but_one():
-                self._is_game_active = False
+                self._is_round_active = False
                 break
 
             moves = self.generate_player_moves(player)
@@ -154,7 +136,7 @@ class Table:
                     break
                 continue
 
-            move = player.basic_player.make_move(moves, self.generate_game_state())
+            move = player.make_move(moves, self.generate_game_state())
 
             self.execute_player_move(player, move)
             if player.current_bet > self._current_bet:
@@ -184,14 +166,14 @@ class Table:
     def generate_player_moves(self, player: TablePlayers) -> Optional[List[Moves]]:
         moves = list()
 
-        if player.current_move is Moves.FOLD or player.current_move is Moves.ALL_IN:
+        if player.current_move is Moves.FOLD or player.get_amount_of_chips() == 0:
             return None
 
-        if player.current_bet < self._current_bet < player.basic_player.get_amount_of_chips():
+        if player.current_bet < self._current_bet < player.get_amount_of_chips():
             moves.append(Moves.CALL)
 
-        if player.basic_player.get_amount_of_chips() <= self._current_bet \
-                or (player.basic_player.get_amount_of_chips() <= (self._current_bet + self._current_raise)
+        if player.get_amount_of_chips() <= self._current_bet \
+                or (player.get_amount_of_chips() <= (self._current_bet + self._current_raise)
                     and not self.is_raising_capped()):
             moves.append(Moves.ALL_IN)
 
@@ -199,7 +181,7 @@ class Table:
             moves.append(Moves.CHECK)
 
         if not self.is_raising_capped() \
-                and player.basic_player.get_amount_of_chips() > (self._current_bet + self._current_raise):
+                and player.get_amount_of_chips() > (self._current_bet + self._current_raise):
             moves.append(Moves.RAISE)
 
         moves.append(Moves.FOLD)
@@ -229,7 +211,7 @@ class Table:
             self._raise_cnt += 1
 
         elif move is Moves.ALL_IN:
-            amount = player.basic_player.get_amount_of_chips()
+            amount = player.get_amount_of_chips()
             self.collect_bet(player, amount)
             player.current_bet += amount
             player.total_bet += amount
@@ -242,9 +224,8 @@ class Table:
     def calculate_amount_to_raise(self, player: TablePlayers) -> int:
         return self.calculate_amount_to_call(player) + self._current_raise
 
-    def update_game_active_state(self) -> None:
-        if self.have_all_folded_but_one():
-            self._is_game_active = False
+    def update_round_active_state(self) -> None:
+        self._is_round_active = not self.have_all_folded_but_one()
 
     def init_common_phase(self, bet_size: int, cards_to_deal: int = 1) -> None:
         self.prepare_common_phase(bet_size)
@@ -253,18 +234,21 @@ class Table:
         self._community_cards += self._deck.deal(cards_to_deal)
         self.init_betting_round(self._players.next)
 
-        self.update_game_active_state()
+        self.update_round_active_state()
 
     def prepare_common_phase(self, bet_amount: int) -> None:
         self._current_raise = bet_amount
         self._raise_cnt = 0
         self._current_bet = 0
 
+        for player in self._players:
+            player.current_bet = 0
+
     def find_players_final_hand(self) -> None:
 
         for player in self._players:
             if player.current_move is not Moves.FOLD:
-                final_hand = StrongestFinalHandFinder.find(self._community_cards + player.basic_player.get_hand())
+                final_hand = StrongestFinalHandFinder.find(self._community_cards + player.get_hand())
 
                 player.final_hand = final_hand.hand
                 player.final_hand_type = final_hand.type
@@ -275,7 +259,7 @@ class Table:
         individual_pot_collection = self.split_pot_among_players(sorted_players)
 
         for player in individual_pot_collection:
-            player.basic_player.receive_chips(self.take_from_pot(individual_pot_collection[player]))
+            player.receive_chips(self.take_from_pot(individual_pot_collection[player]))
 
         self._pot_leftover += self.take_from_pot(self._pot)
 
@@ -476,22 +460,66 @@ class Table:
         self._pot_leftover -= amount
         return amount
 
+    def prepare_next_round(self) -> None:
+        self._community_cards = []
+        self._current_bet = 0
+        self._current_raise = 0
+        self._is_round_active = True
+        self._raise_cnt = 0
+        self._deck = Deck()
+
+        for player in self._players:
+            player.reset()
+
+        self._switch_dealer()
+        self.update_game_active_state()
+
+    def update_game_active_state(self) -> None:
+        self._is_game_active = not self.is_winner_present()
+
+    def is_winner_present(self) -> bool:
+        nbr_of_losers = 0
+
+        for player in self._players:
+            if player.get_amount_of_chips() == 0:
+                nbr_of_losers += 1
+
+        return nbr_of_losers == (self._players.count() - 1)
+
+    def _switch_dealer(self) -> None:
+        self._players = self._players.next
+
     def attach_observer(self, observer: BaseObserver) -> None:
         self._observers.attach(observer)
 
-    def notify_observers(self, state: ObserverState) -> None:
+    def _notify_observers(self, phase: Phases) -> None:
+        state = ObserverState(
+            players=self._players.clone(), 
+            community_cards=deepcopy(self._community_cards),
+            pot=self._pot,
+            phase=phase
+        )
         self._observers.notify(state)
+
+    def run_tournament(self) -> None:
+        while self._is_game_active:
+            self.init_pre_flop_phase()
+            self.init_flop_phase()
+            self.init_turn_phase()
+            self.init_river_phase()
+            self.init_showdown_phase()
+            self.prepare_next_round()
 
     def print_player_info(self):
         print('--- PLAYER INFO ---')
         for player in self._players:
-            hand = player.basic_player.get_hand()
+            hand = player.get_hand()
             print('NAME:\t\t' + str(player.name))
             print('HAND:\t\t' + (str(hand[0].get_rank()) + ' ' + str(hand[0].get_suit()) + ', '
                   + str(hand[1].get_rank()) + ' ' + str(hand[1].get_suit()) if len(hand) > 0 else str(hand)))
             print('CURRENT_BET:\t' + str(player.current_bet))
             print('CURRENT_MOVE:\t' + str(player.current_move))
-            print('CURRENT_CHIPS:\t' + str(player.basic_player.get_amount_of_chips()))
+            print('CURRENT_CHIPS:\t' + str(player.get_amount_of_chips()))
             print('SCORE:\t\t' + str(player.score))
             print('FINAL_HAND:\t' + str(player.final_hand_type))
             print()
@@ -502,7 +530,7 @@ class Table:
             cards += '[' + str(card.get_rank()) + ' ' + str(card.get_suit() + '] ')
 
         print('--- STATE INFO ---')
-        print('IS_ACTIVE:\t' + str(self._is_game_active))
+        print('IS_ACTIVE:\t' + str(self._is_round_active))
         print('SMALL_BET:\t' + str(self._small_bet))
         print('BIG_BET:\t' + str(self._big_bet))
         print('POT:\t\t' + str(self._pot))

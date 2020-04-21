@@ -1,5 +1,5 @@
 from ..players import Players
-from game import Card
+from game import Card, Phases
 from typing import List, NamedTuple
 
 
@@ -7,4 +7,4 @@ class State(NamedTuple):
     players: Players
     community_cards: List[Card]
     pot: int
-    phase: str
+    phase: Phases

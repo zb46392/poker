@@ -32,18 +32,18 @@ class TestPlayerMovesGenerator(TestGame):
 
     def test_higher_bet_than_player_chips(self) -> None:
         self.prepare_game()
-        self.player_1.basic_player.spend_chips(95)
+        self.player_1.spend_chips(95)
 
         self.assertEqual([self.moves.CALL, self.moves.RAISE, self.moves.FOLD],
                          self.table.generate_player_moves(self.player_1))
 
         for _ in range(2):
-            self.player_1.basic_player.spend_chips(1)
+            self.player_1.spend_chips(1)
             self.assertEqual([self.moves.CALL, self.moves.ALL_IN, self.moves.FOLD],
                              self.table.generate_player_moves(self.player_1))
 
         for _ in range(2):
-            self.player_1.basic_player.spend_chips(1)
+            self.player_1.spend_chips(1)
             self.assertEqual([self.moves.ALL_IN, self.moves.FOLD], self.table.generate_player_moves(self.player_1))
 
     def test_no_moves_left(self) -> None:
