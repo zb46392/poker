@@ -87,6 +87,7 @@ class Table:
     def init_showdown_phase(self) -> None:
         self.find_players_final_hand()
         self.init_pot_collection()
+        self.update_game_active_state()
         
         self._notify_observers(Phases.SHOWDOWN)
 
@@ -302,15 +303,14 @@ class Table:
 
     @staticmethod
     def find_stronger_player_on_draw(player_1: TablePlayers, player_2: TablePlayers) -> Optional[TablePlayers]:
-        nbr_of_cards = len(player_1.final_hand)
+        if player_1.final_hand is None:
+            return None
 
-        for i in range(nbr_of_cards):
-            if (player_1.final_hand[i].get_value()
-                    > player_2.final_hand[i].get_value()):
+        for i, player_1_card in enumerate(player_1.final_hand):
+            if player_1_card.get_value() > player_2.final_hand[i].get_value():
                 return player_1
 
-            if (player_2.final_hand[i].get_value()
-                    > player_1.final_hand[i].get_value()):
+            if player_2.final_hand[i].get_value() > player_1_card.get_value():
                 return player_2
 
         return None
@@ -461,18 +461,18 @@ class Table:
         return amount
 
     def prepare_next_round(self) -> None:
-        self._community_cards = []
-        self._current_bet = 0
-        self._current_raise = 0
-        self._is_round_active = True
-        self._raise_cnt = 0
-        self._deck = Deck()
+        if self._is_game_active:
+            self._community_cards = []
+            self._current_bet = 0
+            self._current_raise = 0
+            self._is_round_active = True
+            self._raise_cnt = 0
+            self._deck = Deck()
 
-        for player in self._players:
-            player.reset()
+            for player in self._players:
+                player.reset()
 
-        self._switch_dealer()
-        self.update_game_active_state()
+            self._switch_dealer()
 
     def update_game_active_state(self) -> None:
         self._is_game_active = not self.is_winner_present()
@@ -497,7 +497,8 @@ class Table:
             players=self._players.clone(), 
             community_cards=deepcopy(self._community_cards),
             pot=self._pot,
-            phase=phase
+            phase=phase,
+            is_game_active=self._is_game_active
         )
         self._observers.notify(state)
 

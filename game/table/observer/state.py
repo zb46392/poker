@@ -8,3 +8,4 @@ class State(NamedTuple):
     community_cards: List[Card]
     pot: int
     phase: Phases
+    is_game_active: bool

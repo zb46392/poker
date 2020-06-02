@@ -6,6 +6,7 @@ from typing import List, Optional
 class Players:
     def __init__(self, basic_player: Basic_Player, name: str = 'Player') -> None:
         self._basic_player = basic_player
+        self._basic_player_type = basic_player.__class__.__name__
         self._name = name
         self._current_bet = 0
         self._total_bet = 0
@@ -14,6 +15,10 @@ class Players:
         self._final_hand = None
         self._final_hand_type = None
         self._next = None
+
+    @property
+    def player_type(self) -> str:
+        return self._basic_player_type
 
     @property
     def name(self) -> str:
