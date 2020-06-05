@@ -140,9 +140,9 @@ class Table:
             move = player.make_move(moves, self.generate_game_state())
 
             self.execute_player_move(player, move)
-            if player.current_bet > self._current_bet:
+            if player.current_move is Moves.RAISE or (
+                    player.current_move is Moves.ALL_IN and player.current_bet == self._current_bet):
                 stopping_player = player
-                self._current_bet = player.current_bet
 
             player = player.next
 
@@ -208,7 +208,7 @@ class Table:
             self.collect_bet(player, amount)
             player.current_bet += amount
             player.total_bet += amount
-            self._current_bet += self._current_raise
+            self._current_bet = player.current_bet
             self._raise_cnt += 1
 
         elif move is Moves.ALL_IN:
@@ -216,6 +216,10 @@ class Table:
             self.collect_bet(player, amount)
             player.current_bet += amount
             player.total_bet += amount
+            if self._current_bet < player.current_bet:
+                self._raise_cnt += 1
+                self._current_bet = player.current_bet
+
 
         player.current_move = move
 
