@@ -1,6 +1,6 @@
 from ..players import Players
 from game import Card, Phases
-from typing import List, NamedTuple
+from typing import Dict, List, NamedTuple
 
 
 class State(NamedTuple):
@@ -8,4 +8,4 @@ class State(NamedTuple):
     community_cards: List[Card]
     pot: int
     phase: Phases
-    is_game_active: bool
+    individual_pot_collection: Dict[Players, int]

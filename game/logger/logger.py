@@ -26,7 +26,7 @@ class Logger:
         Path(self._log_path.parent).mkdir(parents=True, exist_ok=True)
 
     def _create_unique_log_file(self, log_dir_path: Path) -> None:
-        extension = 'log'
+        extension = 'txt'
         log_name = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         log_path = log_dir_path.joinpath('.'.join([log_name, extension]))
         cnt = 0

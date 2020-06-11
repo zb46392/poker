@@ -42,6 +42,12 @@ class TestPotCollection(TestGame):
         )
 
         self.table._pot = 100
+
+        self.player_1.total_bet = 25
+        self.player_2.total_bet = 25
+        self.player_3.total_bet = 25
+        self.player_4.total_bet = 25
+
         self.table.init_showdown_phase()
         self.assertEqual(200, self.player_1.get_amount_of_chips())
         self.assertEqual(100, self.player_2.get_amount_of_chips())
@@ -73,7 +79,7 @@ class TestPotCollection(TestGame):
         self.player_2.total_bet = 10
 
         self.player_3.current_bet = 10
-        self.player_3total_bet = 10
+        self.player_3.total_bet = 10
 
         self.player_4.current_bet = 10
         self.player_4.total_bet = 10
@@ -207,3 +213,42 @@ class TestPotCollection(TestGame):
         self.assertEqual(115, self.player_2.get_amount_of_chips())
         self.assertEqual(115, self.player_3.get_amount_of_chips())
         self.assertEqual(115, self.player_4.get_amount_of_chips())
+
+    def test_bug_case_00(self) -> None:
+        table = Table(create_dummy_classes(3))
+
+        player_1 = table._players
+        player_2 = table._players.next
+        player_3 = table._players.next.next
+
+        table._community_cards = [
+            Card('9', 'Heart', 8),
+            Card('Jack', 'Spade', 10),
+            Card('5', 'Heart', 4),
+            Card('Ace', 'Diamond', 13),
+            Card('10', 'Diamond', 9)
+        ]
+
+        player_1._basic_player._hand = [Card('2', 'Spade', 1), Card('Queen', 'Spade', 11)]
+        player_2._basic_player._hand = [Card('King', 'Spade', 12), Card('King', 'Diamond', 12)]
+        player_3._basic_player._hand = [Card('8', 'Spade', 7), Card('6', 'Spade', 5)]
+
+        table._pot = 28
+
+        player_1.total_bet = 10
+        player_1.current_move = Moves.CHECK
+        player_1._basic_player._chips = 71
+
+        player_2.total_bet = 8
+        player_2.current_move = Moves.ALL_IN
+        player_2._basic_player._chips = 0
+
+        player_3.total_bet = 10
+        player_3.current_move = Moves.CHECK
+        player_3._basic_player._chips = 51
+
+        table.init_showdown_phase()
+
+        self.assertEqual(75, player_1.get_amount_of_chips())
+        self.assertEqual(24, player_2.get_amount_of_chips())
+        self.assertEqual(51, player_3.get_amount_of_chips())

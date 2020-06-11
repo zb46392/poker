@@ -11,6 +11,7 @@ class Players:
         self._current_bet = 0
         self._total_bet = 0
         self._score = 0
+        self._is_active = True
         self._current_move = None
         self._final_hand = None
         self._final_hand_type = None
@@ -73,6 +74,14 @@ class Players:
         self._score = score
 
     @property
+    def is_active(self) -> bool:
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, state: bool) -> None:
+        self._is_active = state
+
+    @property
     def next(self) -> 'Players':
         return self._next
 
@@ -101,7 +110,7 @@ class Players:
     def destroy_hand(self) -> None:
         self._basic_player.destroy_hand()
 
-    def reset(self):
+    def reset(self) -> None:
         self._basic_player.destroy_hand()
         self._current_move = None
         self._current_bet = 0
@@ -109,6 +118,7 @@ class Players:
         self._final_hand = None
         self._final_hand_type = None
         self._score = 0
+        self._is_active = True
 
     def append(self, player: 'Players') -> None:
         tmp = self
@@ -134,6 +144,12 @@ class Players:
 
         return next_player
 
+    def remove_player(self, player: 'Players') -> None:
+        for p in self:
+            if p.next == player:
+                p.next = player.next
+                player.next = None
+
     def find(self, player_to_find: 'Players') -> Optional['Players']:
         if player_to_find == self:
             return player_to_find
@@ -148,6 +164,15 @@ class Players:
 
         return player
 
+    def find_by_move(self, move: Moves) -> List['Players']:
+        players = []
+
+        for player in self:
+            if player.current_move is move:
+                players.append(player)
+
+        return players
+
     def count(self) -> int:
         player = self._next
         cnt = 1
@@ -157,6 +182,15 @@ class Players:
             player = player.next
 
         return cnt
+
+    def count_active(self) -> int:
+        active_amount = 0
+
+        for player in self:
+            if player._is_active:
+                active_amount += 1
+
+        return active_amount
 
     def clone(self) -> 'Players':
         return deepcopy(self)

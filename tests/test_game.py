@@ -6,6 +6,7 @@ from .dummy_player import create_dummy_classes
 class TestGame(TestCase):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        Table.INIT_CHIPS = 100
 
         self.table = Table(create_dummy_classes(3))
 

@@ -5,5 +5,5 @@ from .logger import Logger
 from .moves import Moves
 from .phases import Phases
 from .state import State
-from .player import Player, Dummy, RandomBot
+from .player import Player, Dummy, RandomBot, SemiRandomBot
 from .table import Table

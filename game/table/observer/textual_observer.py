@@ -1,5 +1,6 @@
 from . import BaseObserver, State
 from abc import ABC, abstractmethod
+from game import Phases
 
 
 class TextualObserver(BaseObserver, ABC):
@@ -27,14 +28,10 @@ class TextualObserver(BaseObserver, ABC):
             info_msg += '\n'
         info_msg += '\n'
 
-        if not state.is_game_active:
-            info_msg += 'GAME OVER\n\n'
-            info_msg += 'WINNER: '
-
-            for player in state.players:
-                if player.get_amount_of_chips() > 0:
-                    info_msg += f'{player.name} ({player.player_type})\n'
-                    break
+        if state.phase is Phases.SHOWDOWN:
+            info_msg += ' POT COLLECTIONS\n'
+            for player in state.individual_pot_collection:
+                info_msg += f'   {player.name}:\t{state.individual_pot_collection.get(player)}\n'
 
         return info_msg
 
