@@ -215,6 +215,15 @@ class TestPotCollection(TestGame):
         self.assertEqual(115, self.player_4.get_amount_of_chips())
 
     def test_bug_case_00(self) -> None:
+        """
+        Situation:
+         - All in player is winner
+         - Next best player collects rest
+
+         Total pot = 28
+         All in player received:    24 :: (24)
+         Next best player received: 28 :: (4)
+        """
         table = Table(create_dummy_classes(3))
 
         player_1 = table._players
@@ -252,3 +261,59 @@ class TestPotCollection(TestGame):
         self.assertEqual(75, player_1.get_amount_of_chips())
         self.assertEqual(24, player_2.get_amount_of_chips())
         self.assertEqual(51, player_3.get_amount_of_chips())
+
+    def test_bug_case_01(self) -> None:
+        """
+        Situation:
+        4 players. All in player & another not all in player split the pot.
+
+        Total pot: 14
+        All in player received:     5 : (4)
+        Not all in player received: 9 : (10)
+        """
+        #
+        table = Table(create_dummy_classes(4))
+        table.INIT_CHIPS = 100
+
+        player_1 = table._players
+        player_2 = player_1.next
+        player_3 = player_2.next
+        player_4 = player_3.next
+
+        table._community_cards = [
+            Card('Queen', 'Spade', 11),
+            Card('10', 'Club', 9),
+            Card('Jack', 'Spade', 10),
+            Card('Jack', 'Diamond', 10),
+            Card('8', 'Spade', 7)
+        ]
+
+        player_1.receive_cards([Card('Jack', 'Heart', 10), Card('8', 'Diamond', 7)])
+        player_2.receive_cards([Card('4', 'Club', 3), Card('Queen', 'Club', 11)])
+        player_3.receive_cards([Card('6', 'Diamond', 5), Card('Ace', 'Spade', 13)])
+        player_4.receive_cards([Card('2', 'Heart', 1), Card('Queen', 'Diamond', 11)])
+
+        table._pot = 14
+
+        player_1.total_bet = 4
+        player_1.current_move = Moves.FOLD
+        player_1._basic_player._chips = 38
+
+        player_2.total_bet = 6
+        player_2.current_move = Moves.RAISE
+        player_2._basic_player._chips = 164
+
+        player_3.total_bet = 2
+        player_3.current_move = Moves.FOLD
+        player_3._basic_player._chips = 34
+
+        player_4.total_bet = 2
+        player_4.current_move = Moves.ALL_IN
+        player_4._basic_player._chips = 0
+
+        table.init_showdown_phase()
+
+        self.assertEqual(38, player_1.get_amount_of_chips())
+        self.assertEqual(174, player_2.get_amount_of_chips())
+        self.assertEqual(34, player_3.get_amount_of_chips())
+        self.assertEqual(4, player_3.get_amount_of_chips())
