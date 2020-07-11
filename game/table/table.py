@@ -338,10 +338,10 @@ class Table:
             return None
 
         for i, player_1_card in enumerate(player_1.final_hand):
-            if player_1_card.get_value() > player_2.final_hand[i].get_value():
+            if player_1_card.value > player_2.final_hand[i].value:
                 return player_1
 
-            if player_2.final_hand[i].get_value() > player_1_card.get_value():
+            if player_2.final_hand[i].value > player_1_card.value:
                 return player_2
 
         return None
@@ -542,8 +542,8 @@ class Table:
         for player in self._players:
             hand = player.get_hand()
             print('NAME:\t\t' + str(player.name))
-            print('HAND:\t\t' + (str(hand[0].get_rank()) + ' ' + str(hand[0].get_suit()) + ', '
-                                 + str(hand[1].get_rank()) + ' ' + str(hand[1].get_suit()) if len(hand) > 0 else str(
+            print('HAND:\t\t' + (str(hand[0].rank) + ' ' + str(hand[0].suit) + ', '
+                                 + str(hand[1].rank) + ' ' + str(hand[1].suit) if len(hand) > 0 else str(
                 hand)))
             print('CURRENT_BET:\t' + str(player.current_bet))
             print('CURRENT_MOVE:\t' + str(player.current_move))
@@ -555,7 +555,7 @@ class Table:
     def print_state_info(self):
         cards = ''
         for card in self._community_cards:
-            cards += '[' + str(card.get_rank()) + ' ' + str(card.get_suit() + '] ')
+            cards += '[' + str(card.rank) + ' ' + str(card.suit + '] ')
 
         print('--- STATE INFO ---')
         print('IS_ACTIVE:\t' + str(self._is_round_active))

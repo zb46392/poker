@@ -48,9 +48,9 @@ class StrongestFinalHandFinder:
     @staticmethod
     def _create_final_hand(hand: List[Card], hand_type: FinalHandType) -> FinalHand:
         if hand_type is FinalHandType.TWO_PAIRS or hand_type is FinalHandType.FULL_HOUSE:
-            score = hand[0].get_value() * hand_type.value + hand[3].get_value()
+            score = hand[0].value * hand_type.value + hand[3].value
         else:
-            score = hand[0].get_value() * hand_type.value
+            score = hand[0].value * hand_type.value
 
         return FinalHand(hand=hand, type=hand_type, score=score)
 
@@ -59,10 +59,10 @@ class StrongestFinalHandFinder:
         suits = dict()
 
         for card in sorted_cards:
-            if card.get_suit() not in suits:
-                suits[card.get_suit()] = list()
+            if card.suit not in suits:
+                suits[card.suit] = list()
 
-            suits[card.get_suit()].append(card)
+            suits[card.suit].append(card)
 
         for suit in suits:
             if len(suits[suit]) >= 5:
@@ -76,7 +76,7 @@ class StrongestFinalHandFinder:
         previous_card = sorted_cards[0]
 
         for i in range(1, len(sorted_cards)):
-            if sorted_cards[i].get_value() != previous_card.get_value() - 1:
+            if sorted_cards[i].value != previous_card.value - 1:
                 cnt = 0
             else:
                 cnt += 1
@@ -85,23 +85,23 @@ class StrongestFinalHandFinder:
 
             previous_card = sorted_cards[i]
 
-        if cnt == 3 and sorted_cards[0].get_value() == 13 and sorted_cards[-1].get_value() == 1:
+        if cnt == 3 and sorted_cards[0].value == 13 and sorted_cards[-1].value == 1:
             return sorted_cards[len(sorted_cards) - 4:-1] + [sorted_cards[0]]
 
         return None
 
     @staticmethod
     def _is_royal_flush(cards: List[Card]) -> bool:
-        return (cards[0].get_value() == 13
-                and cards[1].get_value() == 12
-                and cards[2].get_value() == 11
-                and cards[3].get_value() == 10
-                and cards[4].get_value() == 9
-                and cards[0].get_suit()
-                == cards[1].get_suit()
-                == cards[2].get_suit()
-                == cards[3].get_suit()
-                == cards[4].get_suit())
+        return (cards[0].value == 13
+                and cards[1].value == 12
+                and cards[2].value == 11
+                and cards[3].value == 10
+                and cards[4].value == 9
+                and cards[0].suit
+                == cards[1].suit
+                == cards[2].suit
+                == cards[3].suit
+                == cards[4].suit)
 
     @staticmethod
     def _try_find_poker(sorted_cards: List[Card]) -> Optional[List[Card]]:
@@ -129,10 +129,10 @@ class StrongestFinalHandFinder:
         same_value_cards = dict()
 
         for card in cards:
-            if card.get_value() not in same_value_cards:
-                same_value_cards[card.get_value()] = list()
+            if card.value not in same_value_cards:
+                same_value_cards[card.value] = list()
 
-            same_value_cards[card.get_value()].append(card)
+            same_value_cards[card.value].append(card)
 
         return same_value_cards
 
