@@ -1,29 +1,32 @@
 class Card:
-    def __init__(self, rank, suit, value):
-        self.rank = rank
-        self.suit = suit
-        self.value = value
+    def __init__(self, rank: str, suit: str, value: int) -> None:
+        self._rank = rank
+        self._suit = suit
+        self._value = value
 
-    def get_rank(self):
-        return self.rank
+    @property
+    def rank(self) -> str:
+        return self._rank
 
-    def get_suit(self):
-        return self.suit
+    @property
+    def suit(self) -> str:
+        return self._suit
 
-    def get_value(self):
-        return self.value
+    @property
+    def value(self) -> int:
+        return self._value
 
-    def __str__(self):
-        return str(self.get_rank()) + '(' + str(self.get_suit() + ')')
+    def __str__(self) -> str:
+        return str(self._rank) + '(' + str(self._suit + ')')
 
-    def __eq__(self, other):
-        return self.value == other.get_value() and self.suit == other.get_suit()
+    def __eq__(self, other) -> bool:
+        return self._value == other.value and self._suit == other.suit
 
-    def __lt__(self, other):
-        return self.value < other.get_value()
+    def __lt__(self, other) -> bool:
+        return self._value < other.value
 
-    def __gt__(self, other):
-        return self.value > other.get_value()
+    def __gt__(self, other) -> bool:
+        return self._value > other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

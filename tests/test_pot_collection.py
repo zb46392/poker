@@ -316,4 +316,4 @@ class TestPotCollection(TestGame):
         self.assertEqual(38, player_1.get_amount_of_chips())
         self.assertEqual(174, player_2.get_amount_of_chips())
         self.assertEqual(34, player_3.get_amount_of_chips())
-        self.assertEqual(4, player_3.get_amount_of_chips())
+        self.assertEqual(4, player_4.get_amount_of_chips())

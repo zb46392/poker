@@ -2,7 +2,7 @@ from .observer import State as ObserverState, BaseObserver
 from .observers import Observers
 from .players import Players as TablePlayers
 from copy import deepcopy
-from game import Deck, Moves, Phases, Player as BasicPlayer, State, StrongestFinalHandFinder
+from game import Card, Deck, Moves, Phases, Player as BasicPlayer, State, StrongestFinalHandFinder
 from typing import Dict, List, Optional, Type
 
 
@@ -27,6 +27,7 @@ class Table:
         self._is_game_active = True
         self._observers = Observers()
         self._players_who_lost = []
+        self._current_phase = None
 
     def _create_players(self, players_classes: List[Type[BasicPlayer]]) -> TablePlayers:
         if len(players_classes) < 2 or len(players_classes) > 10:
@@ -74,7 +75,8 @@ class Table:
 
         self.update_round_active_state()
 
-        self._notify_observers(Phases.PRE_FLOP)
+        self._current_phase = Phases.PRE_FLOP
+        self._notify_observers()
 
     def init_flop_phase(self) -> None:
         self.deal_community_cards(3)
@@ -82,7 +84,8 @@ class Table:
         if self._is_round_active:
             self.init_common_phase(self._small_bet)
 
-        self._notify_observers(Phases.FLOP)
+        self._current_phase = Phases.FLOP
+        self._notify_observers()
 
     def init_turn_phase(self) -> None:
         self.deal_community_cards()
@@ -90,7 +93,8 @@ class Table:
         if self._is_round_active:
             self.init_common_phase(self._big_bet)
 
-        self._notify_observers(Phases.TURN)
+        self._current_phase = Phases.TURN
+        self._notify_observers()
 
     def init_river_phase(self) -> None:
         self.deal_community_cards()
@@ -98,10 +102,14 @@ class Table:
         if self._is_round_active:
             self.init_common_phase(self._big_bet)
 
-        self._notify_observers(Phases.RIVER)
+        self._current_phase = Phases.RIVER
+        self._notify_observers()
 
     def init_showdown_phase(self) -> None:
+        # TO_DO: BREAK INTO 2 PHASES (SHOWDOWN, POT_COLLECTION)
         self.find_players_final_hand()
+        self._current_phase = Phases.SHOWDOWN
+        # NOTIFY OBSERVERS
         self.init_pot_collection()
 
     def prepare_next_round(self) -> None:
@@ -237,7 +245,11 @@ class Table:
         return not self._raise_cnt < 4
 
     def generate_game_state(self) -> State:
-        return State()
+        return State(
+            community_cards=[Card(c.rank, c.suit, c.value) for c in self._community_cards],
+            nbr_of_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
+            current_phase=self._current_phase
+        )
 
     def execute_player_move(self, player: TablePlayers, move: Moves) -> None:
 
@@ -293,7 +305,9 @@ class Table:
 
         self._pot_leftover += self.take_from_pot(self._pot)
 
-        self._notify_observers(Phases.SHOWDOWN, individual_pot_collection)
+        # NEED NEW PHASE: POT_COLLECTION
+        self._current_phase = Phases.SHOWDOWN
+        self._notify_observers(individual_pot_collection)
 
     def sort_players_by_score(self) -> List[List[TablePlayers]]:
         sorted_players = list()
@@ -338,10 +352,10 @@ class Table:
             return None
 
         for i, player_1_card in enumerate(player_1.final_hand):
-            if player_1_card.get_value() > player_2.final_hand[i].get_value():
+            if player_1_card.value > player_2.final_hand[i].value:
                 return player_1
 
-            if player_2.final_hand[i].get_value() > player_1_card.get_value():
+            if player_2.final_hand[i].value > player_1_card.value:
                 return player_2
 
         return None
@@ -526,13 +540,12 @@ class Table:
     def attach_observer(self, observer: BaseObserver) -> None:
         self._observers.attach(observer)
 
-    def _notify_observers(self, phase: Phases,
-                          individual_pot_collection: Optional[Dict[TablePlayers, int]] = None) -> None:
+    def _notify_observers(self, individual_pot_collection: Optional[Dict[TablePlayers, int]] = None) -> None:
         state = ObserverState(
             players=self._players.clone(),
             community_cards=deepcopy(self._community_cards),
             pot=self._pot,
-            phase=phase,
+            phase=self._current_phase,
             individual_pot_collection=individual_pot_collection
         )
         self._observers.notify(state)
@@ -542,8 +555,8 @@ class Table:
         for player in self._players:
             hand = player.get_hand()
             print('NAME:\t\t' + str(player.name))
-            print('HAND:\t\t' + (str(hand[0].get_rank()) + ' ' + str(hand[0].get_suit()) + ', '
-                                 + str(hand[1].get_rank()) + ' ' + str(hand[1].get_suit()) if len(hand) > 0 else str(
+            print('HAND:\t\t' + (str(hand[0].rank) + ' ' + str(hand[0].suit) + ', '
+                                 + str(hand[1].rank) + ' ' + str(hand[1].suit) if len(hand) > 0 else str(
                 hand)))
             print('CURRENT_BET:\t' + str(player.current_bet))
             print('CURRENT_MOVE:\t' + str(player.current_move))
@@ -555,7 +568,7 @@ class Table:
     def print_state_info(self):
         cards = ''
         for card in self._community_cards:
-            cards += '[' + str(card.get_rank()) + ' ' + str(card.get_suit() + '] ')
+            cards += '[' + str(card.rank) + ' ' + str(card.suit + '] ')
 
         print('--- STATE INFO ---')
         print('IS_ACTIVE:\t' + str(self._is_round_active))
