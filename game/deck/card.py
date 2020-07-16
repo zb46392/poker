@@ -16,17 +16,17 @@ class Card:
     def value(self) -> int:
         return self._value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._rank) + '(' + str(self._suit + ')')
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self._value == other.value and self._suit == other.suit
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self._value < other.value
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return self._value > other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

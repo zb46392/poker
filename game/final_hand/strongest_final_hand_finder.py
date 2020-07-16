@@ -46,6 +46,29 @@ class StrongestFinalHandFinder:
         return StrongestFinalHandFinder._create_final_hand(hand[:5], FinalHandType.HIGH_CARD)
 
     @staticmethod
+    def find_stronger_hand(final_hand1: FinalHand, final_hand2: FinalHand) -> Optional[FinalHand]:
+        if final_hand1.score == final_hand2.score:
+            hand1 = sorted(final_hand1.hand, reverse=True)
+            hand2 = sorted(final_hand2.hand, reverse=True)
+
+            nbr_of_cards = len(hand1) if len(hand1) < len(hand2) else len(hand2)
+
+            for i in range(nbr_of_cards):
+                if hand1[i].value > hand2[i].value:
+                    return final_hand1
+
+                if hand2[i].value > hand1[i].value:
+                    return final_hand2
+
+            return None
+
+        elif final_hand1.score > final_hand2.score:
+            return final_hand1
+
+        else:
+            return final_hand2
+
+    @staticmethod
     def _create_final_hand(hand: List[Card], hand_type: FinalHandType) -> FinalHand:
         if hand_type is FinalHandType.TWO_PAIRS or hand_type is FinalHandType.FULL_HOUSE:
             score = hand[0].value * hand_type.value + hand[3].value
@@ -81,7 +104,7 @@ class StrongestFinalHandFinder:
             else:
                 cnt += 1
                 if cnt == 4:
-                    return sorted_cards[i-4:i+1]
+                    return sorted_cards[i - 4:i + 1]
 
             previous_card = sorted_cards[i]
 
