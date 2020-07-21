@@ -58,7 +58,7 @@ class OpponentBot(Player):
         """
 
         if game_state.current_phase is Phases.PRE_FLOP:
-            hand_strength = self._calculate_pre_flop_hand_strength(game_state)
+            hand_strength = self._calculate_pre_flop_hand_strength()
         else:
             hand_strength = self._calculate_post_pre_flop_hand_strength(game_state)
 
@@ -123,6 +123,11 @@ class OpponentBot(Player):
         else:
             return 11
 
+    def _calculate_post_pre_flop_hand_strength(self, state: State) -> int:
+        hs = self.calculate_hand_strength(state)
+        return int(round(hs))
+
+
     def _is_hand_in_1_st_group(self) -> bool:
         """
         AA, AKs, KK, QQ, JJ
@@ -164,10 +169,10 @@ class OpponentBot(Player):
 
         return (
                 (c1.rank == 'Ace' and c2.rank == 'Queen')
-                or (c1.rank == 'Ace' and  c2.rank == '10' and c1.suit == c2.suit)
+                or (c1.rank == 'Ace' and c2.rank == '10' and c1.suit == c2.suit)
                 or (c1.rank == 'King' and c2.rank == 'Jack' and c1.suit == c2.suit)
                 or (c1.rank == 'Queen' and c2.rank == 'Jack' and c1.suit == c2.suit)
-                or (c1.rank == 'Jack' and  c2.rank == '10' and c1.suit == c2.suit)
+                or (c1.rank == 'Jack' and c2.rank == '10' and c1.suit == c2.suit)
                 or (c1.rank == '9' and c2.rank == '9')
         )
 
@@ -185,7 +190,7 @@ class OpponentBot(Player):
                 or (c1.rank == 'King' and c2.rank == '10' and c1.suit == c2.suit)
                 or (c1.rank == 'Queen' and c2.rank == '10' and c1.suit == c2.suit)
                 or (c1.rank == 'Jack' and c2.rank == '9' and c1.suit == c2.suit)
-                or (c1.rank == '10' and c2.rank == '9'and c1.suit == c2.suit)
+                or (c1.rank == '10' and c2.rank == '9' and c1.suit == c2.suit)
                 or (c1.rank == '9' and c2.rank == '8' and c1.suit == c2.suit)
                 or (c1.rank == '8' and c2.rank == '8')
 
@@ -194,17 +199,87 @@ class OpponentBot(Player):
     def _is_hand_in_5_th_group(self) -> bool:
         """
         A9s - A2s, KJ, QJ, JT, Q9s, T8s, 97s, 87s, 77, 76s, 66
-        :return: bool
+        :return: BOOL
         """
 
         c1, c2 = sorted(self.get_hand(), reverse=True)
         return (
-            (c1.rank == 'Ace' and c2.value < 9 and c1.suit == c2.suit)
-            or (c1.rank == 'King' and c2.rank == 'Jack')
-            or (c1.rank == 'Queen' and c2.rank == 'Jack')
-            or (c1.rank == 'Jack' and c2.rank == '10')
-            or (c1.rank == 'Queen' and)
+                (c1.rank == 'Ace' and c2.value < 9 and c1.suit == c2.suit)
+                or (c1.rank == 'King' and c2.rank == 'Jack')
+                or (c1.rank == 'Queen' and c2.rank == 'Jack')
+                or (c1.rank == 'Jack' and c2.rank == '10')
+                or (c1.rank == 'Queen' and c2.rank == '9' and c1.suit == c2.suit)
+                or (c1.rank == '10' and c2.rank == '8' and c1.suit == c2.suit)
+                or (c1.rank == '9' and c2.rank == '7' and c1.suit == c2.suit)
+                or (c1.rank == '8' and c2.rank == '7' and c1.suit == c2.suit)
+                or (c1.rank == '7' and c2.rank == '7')
+                or (c1.rank == '7' and c2.rank == '6' and c1.suit == c2.suit)
+                or (c1.rank == '6' and c2.rank == '6')
         )
+
+    def _is_hand_in_6_th_group(self) -> bool:
+        """
+        AT, KT, QT, J8s, 86s, 75s, 65s, 55, 54s
+        :return: BOOL
+        """
+
+        c1, c2 = sorted(self.get_hand(), reverse=True)
+        return (
+                (c1.rank == 'Ace' and c2.rank == '10')
+                or (c1.rank == 'King' and c2.rank == '10')
+                or (c1.rank == 'Queen' and c2.rank == '10')
+                or (c1.rank == 'Jack' and c2.rank == '8' and c1.suit == c2.suit)
+                or (c1.rank == '8' and c2.rank == '6' and c1.suit == c2.suit)
+                or (c1.rank == '7' and c2.rank == '5' and c1.suit == c2.suit)
+                or (c1.rank == '6' and c2.rank == '5' and c1.suit == c2.suit)
+                or (c1.rank == '5' and c2.rank == '5')
+                or (c1.rank == '5' and c2.rank == '4' and c1.suit == c2.suit)
+        )
+
+    def _is_hand_in_7_th_group(self) -> bool:
+        """
+        K9s - K2s, J9, T9, 98, 64s, 53s, 44, 43s, 33, 22
+        :return: BOOL
+        """
+
+        c1, c2 = sorted(self.get_hand(), reverse=True)
+        return (
+                (c1.rank == 'King' and c2.value < 9 and c1.suit == c2.suit)
+                or (c1.rank == 'Jack' and c2.rank == '9')
+                or (c1.rank == '10' and c2.rank == '9')
+                or (c1.rank == '9' and c2.rank == '8')
+                or (c1.rank == '6' and c2.rank == '4' and c1.suit == c2.suit)
+                or (c1.rank == '5' and c2.rank == '3' and c1.suit == c2.suit)
+                or (c1.rank == '4' and c2.rank == '4')
+                or (c1.rank == '4' and c2.rank == '3' and c1.suit == c2.suit)
+                or (c1.rank == '3' and c2.rank == '3')
+                or (c1.rank == '2' and c2.rank == '2')
+        )
+
+    def _is_hand_in_8_th_group(self) -> bool:
+        """
+        A9, K9, Q9, J8, J7s, T8, 96s, 87, 85s, 76, 74s, 65, 54, 42s, 32s
+        :return: BOOL
+        """
+
+        c1, c2 = sorted(self.get_hand(), reverse=True)
+        return (
+            (c1.rank == 'Ace' and c2.rank == '9')
+            or (c1.rank == 'King' and c2.rank == '9')
+            or (c1.rank == 'Queen' and c2.rank == '9')
+            or (c1.rank == 'Jack' and c2.rank == '7' and c1.suit == c2.suit)
+            or (c1.rank == '10' and c2.rank == '8')
+            or (c1.rank == '9' and c2.rank == '6' and c1.suit == c2.suit)
+            or (c1.rank == '8' and c2.rank == '7')
+            or (c1.rank == '8' and c2.rank == '5' and c1.suit == c2.suit)
+            or (c1.rank == '7' and c2.rank == '6')
+            or (c1.rank == '7' and c2.rank == '4' and c1.suit == c2.suit)
+            or (c1.rank == '6' and c2.rank == '5')
+            or (c1.rank == '5' and c2.rank == '4')
+            or (c1.rank == '4' and c2.rank == '2' and c1.suit == c2.suit)
+            or (c1.rank == '3' and c2.rank == '2' and c1.suit == c2.suit)
+        )
+
 
     def calculate_ehs(self, state: State) -> float:
         f"""
