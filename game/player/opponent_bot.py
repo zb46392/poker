@@ -13,8 +13,12 @@ class OpponentBot(Player):
                     Darse Billings, Denis Papp, Jonathan Schaeffer, Duane Szafron
     (http://www.cs.virginia.edu/~evans/poker/wp-content/uploads/2011/02/opponent_modeling_in_poker_billings.pdf)
     """
+    FOLD_THRESH = 50
+    RAISE_THRESH = 50
+    BLUFF_THRESH = 50
 
-    def __init__(self, chips: int, fold_thresh: int, raise_thresh: int, bluff_thresh: int):
+    def __init__(self, chips: int, fold_thresh: int = None, raise_thresh: int = None,
+                 bluff_thresh: int = None):
         """
         The lower the threshold the greater the probability for action to take.
 
@@ -23,6 +27,15 @@ class OpponentBot(Player):
         :param bluff_thresh: threshold for call/raise (bluffing) - Between 1 and 100
         """
         super().__init__(chips)
+        if fold_thresh is None:
+            fold_thresh = OpponentBot.FOLD_THRESH
+
+        if raise_thresh is None:
+            raise_thresh = OpponentBot.RAISE_THRESH
+
+        if bluff_thresh is None:
+            bluff_thresh = OpponentBot.BLUFF_THRESH
+
         self._fold_thresh = fold_thresh
         self._raise_thresh = raise_thresh
         self._bluff_thresh = bluff_thresh
@@ -82,7 +95,7 @@ class OpponentBot(Player):
                 current_move = Moves.CALL
             else:
                 current_move = Moves.FOLD
-        elif Moves.CHECK in current_move:
+        elif Moves.CHECK in possible_moves:
             current_move = Moves.CHECK
 
         return current_move
@@ -125,7 +138,7 @@ class OpponentBot(Player):
 
     def _calculate_post_pre_flop_hand_strength(self, state: State) -> int:
         hs = self.calculate_hand_strength(state)
-        return int(round(hs))
+        return int(round(hs * 100))
 
 
     def _is_hand_in_1_st_group(self) -> bool:
@@ -313,6 +326,13 @@ class OpponentBot(Player):
         return hand_strength
 
     def _calculate_hand_strength_potential(self, state: State) -> Tuple[float, float, float]:
+        """
+        Currently not usable for 2 reasons:
+        1) Return number range not between 0 and 1
+        2) Computationally to intensive
+        :param state:
+        :return:
+        """
         hand_potential = {
             'ahead': {'ahead': 0, 'behind': 0, 'tied': 0},
             'behind': {'ahead': 0, 'behind': 0, 'tied': 0},
