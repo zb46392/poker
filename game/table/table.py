@@ -42,7 +42,8 @@ class Table:
             if not isinstance(basic_player, BasicPlayer):
                 raise ValueError('Class has to be extended from game.Player base class')
 
-            table_player = TablePlayers(basic_player, 'Player_' + str(player_cnt + 1))
+            table_player = TablePlayers(basic_player, 'Player_'
+                                        + str(player_cnt + 1) + f' ({type(basic_player).__name__})')
 
             if previous_table_player is not None:
                 previous_table_player.next = table_player
@@ -62,6 +63,7 @@ class Table:
             self.init_turn_phase()
             self.init_river_phase()
             self.init_showdown_phase()
+            self.init_pot_collection_phase()
             self.prepare_next_round()
 
     def init_pre_flop_phase(self) -> None:
@@ -106,11 +108,24 @@ class Table:
         self._notify_observers()
 
     def init_showdown_phase(self) -> None:
-        # TO_DO: BREAK INTO 2 PHASES (SHOWDOWN, POT_COLLECTION)
         self.find_players_final_hand()
         self._current_phase = Phases.SHOWDOWN
-        # NOTIFY OBSERVERS
-        self.init_pot_collection()
+        self._notify_observers()
+
+    def init_pot_collection_phase(self) -> None:
+        sorted_players = self.sort_players_by_score()
+        individual_pot_collection = self.split_pot_among_players(sorted_players)
+
+        for player in self._players:
+            if player in individual_pot_collection:
+                player.receive_chips(self.take_from_pot(individual_pot_collection[player]))
+            else:
+                player.receive_chips(0)
+
+        self._pot_leftover += self.take_from_pot(self._pot)
+
+        self._current_phase = Phases.POT_COLLECTION
+        self._notify_observers(individual_pot_collection)
 
     def prepare_next_round(self) -> None:
         self._define_next_dealer()
@@ -118,15 +133,7 @@ class Table:
         self.update_game_active_state()
 
         if self._is_game_active:
-            self._community_cards = []
-            self._current_bet = 0
-            self._current_raise = 0
-            self._is_round_active = True
-            self._raise_cnt = 0
-            self._deck = Deck()
-
-            for player in self._players:
-                player.reset()
+            self._reset_play()
 
     def init_common_phase(self, bet_size: int) -> None:
         self.prepare_common_phase(bet_size)
@@ -247,8 +254,10 @@ class Table:
     def generate_game_state(self) -> State:
         return State(
             community_cards=[Card(c.rank, c.suit, c.value) for c in self._community_cards],
-            nbr_of_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
-            current_phase=self._current_phase
+            total_nbr_of_players=self._players.count() + len(self._players_who_lost),
+            nbr_of_active_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
+            current_phase=self._current_phase,
+            is_raising_capped=self.is_raising_capped()
         )
 
     def execute_player_move(self, player: TablePlayers, move: Moves) -> None:
@@ -295,19 +304,6 @@ class Table:
                 player.final_hand = final_hand.hand
                 player.final_hand_type = final_hand.type
                 player.score = final_hand.score
-
-    def init_pot_collection(self) -> None:
-        sorted_players = self.sort_players_by_score()
-        individual_pot_collection = self.split_pot_among_players(sorted_players)
-
-        for player in individual_pot_collection:
-            player.receive_chips(self.take_from_pot(individual_pot_collection[player]))
-
-        self._pot_leftover += self.take_from_pot(self._pot)
-
-        # NEED NEW PHASE: POT_COLLECTION
-        self._current_phase = Phases.SHOWDOWN
-        self._notify_observers(individual_pot_collection)
 
     def sort_players_by_score(self) -> List[List[TablePlayers]]:
         sorted_players = list()
@@ -531,6 +527,17 @@ class Table:
             self._players.remove_player(player)
             self._players_who_lost.append(player)
 
+    def _reset_play(self) -> None:
+        self._community_cards = []
+        self._current_bet = 0
+        self._current_raise = 0
+        self._is_round_active = True
+        self._raise_cnt = 0
+        self._deck = Deck()
+
+        for player in self._players:
+            player.reset()
+
     def update_game_active_state(self) -> None:
         self._is_game_active = not self.is_winner_present()
 
@@ -540,9 +547,12 @@ class Table:
     def attach_observer(self, observer: BaseObserver) -> None:
         self._observers.attach(observer)
 
+    def detach_observer(self, observer: BaseObserver) -> None:
+        self._observers.detach(observer)
+
     def _notify_observers(self, individual_pot_collection: Optional[Dict[TablePlayers, int]] = None) -> None:
         state = ObserverState(
-            players=self._players.clone(),
+            players=self._players,
             community_cards=deepcopy(self._community_cards),
             pot=self._pot,
             phase=self._current_phase,

@@ -28,7 +28,7 @@ class TextualObserver(BaseObserver, ABC):
             info_msg += '\n'
         info_msg += '\n'
 
-        if state.phase is Phases.SHOWDOWN:
+        if state.phase is Phases.POT_COLLECTION:
             info_msg += ' POT COLLECTIONS\n'
             for player in state.individual_pot_collection:
                 info_msg += f'   {player.name}:\t{state.individual_pot_collection.get(player)}\n'

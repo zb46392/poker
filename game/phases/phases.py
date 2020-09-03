@@ -7,3 +7,4 @@ class Phases(Enum):
     TURN = 3
     RIVER = 4
     SHOWDOWN = 5
+    POT_COLLECTION = 6

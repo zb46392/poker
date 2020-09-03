@@ -1,5 +1,4 @@
 from .observer import BaseObserver as Observer, State
-from typing import List
 
 
 class Observers:
@@ -10,9 +9,12 @@ class Observers:
         self._observers.append(observer)
 
     def detach(self, observer: Observer) -> None:
+        detached = 0
+
         for i in range(len(self._observers)):
-            if self._observers[i] == observer:
-                self._observers.pop(i)
+            if self._observers[i - detached] == observer:
+                self._observers.pop(i - detached)
+                detached += 1
 
     def notify(self, state: State) -> None:
         for observer in self._observers:
