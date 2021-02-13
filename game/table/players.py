@@ -22,6 +22,10 @@ class Players:
         return self._basic_player_type
 
     @property
+    def basic_player(self) -> Basic_Player:
+        return self._basic_player
+
+    @property
     def name(self) -> str:
         return self._name
 

@@ -1,8 +1,15 @@
-from . import Table
-from typing import List
+from game.table import Table
+from game.player import Player as BasePlayer, Mode
+from game.player.monitor import MonitoredSimpleDqnBot
+from typing import List, Type
 
 
 class TrainingTable(Table):
+    def __init__(self, players_classes: List[Type[BasePlayer]]) -> None:
+        super().__init__(players_classes)
+        self._monitoring_players = [player.basic_player for player in self._players if
+                                    player.player_type == MonitoredSimpleDqnBot.__name__]
+
     def reset(self) -> None:
         self._reset_players()
         self._reset_player_chips()
@@ -45,3 +52,32 @@ class TrainingTable(Table):
             names.append(player.name)
 
         return names
+
+    @property
+    def monitoring_player_names(self) -> List[str]:
+        names = []
+        for player in self._players:
+            if player.basic_player in self._monitoring_players:
+                names.append(player.name)
+
+        return names
+
+    def activate_player_monitor(self) -> None:
+        for player in self._monitoring_players:
+            player.activate_monitoring()
+
+    def deactivate_player_monitor(self) -> None:
+        for player in self._monitoring_players:
+            player.deactivate_monitoring()
+
+    def set_player_mode(self, mode: Mode) -> None:
+        for player in self._monitoring_players:
+            player.mode = mode
+
+    def save_player_model(self) -> None:
+        for player in self._monitoring_players:
+            player.save_model()
+
+    def finish(self) -> None:
+        for player in self._monitoring_players:
+            player.close()

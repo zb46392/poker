@@ -1,12 +1,11 @@
 from . import ReplayMemory, StateInterpreter
-from .. import SemiRandomBot
+from .. import SemiRandomBot, Mode
 from ... import Moves, State
 from datetime import datetime
 from random import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.tensorboard import SummaryWriter
 from typing import List, Tuple
 
 
@@ -23,25 +22,23 @@ class SimpleDqnBot(SemiRandomBot):
     GAMMA = 0.999
     EPSILON = 0.0
     EPSILON_FLOOR = 0.1
-    TRAIN_EPISODES = 100_000
+    EPSILON_DECAY = 0
+    MODE = Mode.TRAIN
     SHOULD_EPSILON_DECAY = False
-    SHOULD_TRACK_PROGRESS = False
-    SHOULD_SAVE_MODEL_AFTER_TRAINING = False
     LOAD_MODEL = None
 
     def __init__(self, chips: int) -> None:
         super().__init__(chips)
         self._previous_chips = chips
 
-        self._train_amount = SimpleDqnBot.TRAIN_EPISODES
-        self._is_training = self._train_amount > 0
+        self._mode = SimpleDqnBot.MODE
 
         self._alpha = SimpleDqnBot.ALPHA  # Learning rate
         self._gamma = SimpleDqnBot.GAMMA  # Future reward discount
         self._epsilon = SimpleDqnBot.EPSILON  # Exploration rate
         self._epsilon_floor = SimpleDqnBot.EPSILON_FLOOR
         self._should_epsilon_decay = SimpleDqnBot.SHOULD_EPSILON_DECAY
-        self._epsilon_decay = self._epsilon / self._train_amount if self._train_amount > 0 else 0
+        self._epsilon_decay = SimpleDqnBot.EPSILON_DECAY
 
         self._all_moves = [move for move in Moves]
         self._actions_indices = {self._all_moves[i]: i for i in range(len(self._all_moves))}
@@ -50,9 +47,8 @@ class SimpleDqnBot(SemiRandomBot):
         self._previous_move = None
         self._current_state = None
         self._current_move = None
+        self._reward = 0
 
-        self._rewards_sum = 0
-        self._episode_cnt = 0
         self._replay_memory = ReplayMemory()
         self._state_interpreter = StateInterpreter(chips)
 
@@ -61,26 +57,32 @@ class SimpleDqnBot(SemiRandomBot):
         self._loss = nn.MSELoss()
         self._optim = optim.Adam(self._policy_net.parameters(), self._alpha)
 
-        self._should_track_training_progress = SimpleDqnBot.SHOULD_TRACK_PROGRESS
-        self._summary_writer = None
-
         if SimpleDqnBot.LOAD_MODEL is not None:
             self.load_model(SimpleDqnBot.LOAD_MODEL)
 
-        self._should_save_model_after_training = SimpleDqnBot.SHOULD_SAVE_MODEL_AFTER_TRAINING
+    @property
+    def mode(self) -> Mode:
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode: Mode) -> None:
+        self._mode = mode
 
     def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
         self._update_states(game_state)
         self._determine_current_move(possible_moves)
-        if self._is_training:
+        if self._mode is Mode.TRAIN:
             self._execute_replay_memory_responsibilities()
 
         return self._current_move
 
     def receive_chips(self, amount: int) -> None:
         super().receive_chips(amount)
-        if self._is_training:
+        self._update_reward()
+        if self._mode is Mode.TRAIN:
             self._execute_training_responsibilities()
+
+        self._prepare_next_round()
 
     def _create_neural_network(self) -> nn.Sequential:
         in_size = self._state_interpreter.state_space
@@ -104,22 +106,19 @@ class SimpleDqnBot(SemiRandomBot):
         self._previous_move = self._current_move
         self._current_move = move
 
-    def _update_reward_sum(self, reward: int) -> None:
-        self._rewards_sum += reward
-
-    def _update_episode_cnt(self) -> None:
-        self._episode_cnt += 1
-
     def _update_epsilon(self) -> None:
         if self._should_epsilon_decay and self._epsilon > self._epsilon_floor:
             self._epsilon -= self._epsilon_decay
 
+    def _update_reward(self) -> None:
+        self._reward = self._chips - self._previous_chips
+
     def _is_game_over(self) -> bool:
         return self._chips == 0 or self._chips == self._state_interpreter.total_chips_amount
 
-    def _determine_current_move(self, possible_moves: List[Moves]):
+    def _determine_current_move(self, possible_moves: List[Moves]) -> None:
         self._previous_possible_moves = possible_moves
-        if random() < self._epsilon:
+        if self._mode is Mode.TRAIN and random() < self._epsilon:
             self._explore(possible_moves)
         else:
             self._exploit(possible_moves)
@@ -134,24 +133,10 @@ class SimpleDqnBot(SemiRandomBot):
 
     def _execute_training_responsibilities(self) -> None:
         if self._previous_state is not None:
-            reward = self._chips - self._previous_chips
-            self._update_reward_sum(reward)
-            self._update_policy_net(reward)
-
-            if self._should_track_training_progress:
-                self._track_progress()
-
-        self._prepare_for_next_episode()
+            self._update_policy_net()
 
         if self._is_game_over():
             self._update_epsilon()
-            self._update_episode_cnt()
-
-            if self._episode_cnt == self._train_amount:
-                self._is_training = False
-
-                if self._should_save_model_after_training:
-                    self.save_model()
 
     def _explore(self, possible_moves: List[Moves]) -> None:
         move = super().make_move(possible_moves, None)
@@ -169,14 +154,14 @@ class SimpleDqnBot(SemiRandomBot):
             if self._all_moves[i] in possible_moves:
                 return self._all_moves[i]
 
-    def _update_policy_net(self, reward: int) -> None:
+    def _update_policy_net(self) -> None:
         self._policy_net.train()
 
         batch = self._create_batch()
         previous_states, previous_moves, previous_possible_actions, next_states = batch
 
         actual_pred = self._policy_net(torch.cat(previous_states))
-        target_pred = self._generate_target_preds(batch, actual_pred, reward)
+        target_pred = self._generate_target_preds(batch, actual_pred)
 
         loss = self._loss(actual_pred, target_pred)
         self._optim.zero_grad()
@@ -187,9 +172,9 @@ class SimpleDqnBot(SemiRandomBot):
         experiences = self._replay_memory.flush()
         return tuple(zip(*experiences))
 
-    def _generate_target_preds(self, batch: Batch, preds: torch.Tensor, reward: int) -> torch.Tensor:
+    def _generate_target_preds(self, batch: Batch, preds: torch.Tensor) -> torch.Tensor:
         previous_states, previous_moves, previous_possible_actions, next_states = batch
-        discounted_reward_sums = self._calculate_discounted_reward_sums(reward, len(previous_moves))
+        discounted_reward_sums = self._calculate_discounted_reward_sums(len(previous_moves))
 
         next_preds = self._policy_net(torch.cat(next_states))
         next_qs = next_preds.max(dim=1).values.detach()
@@ -224,10 +209,10 @@ class SimpleDqnBot(SemiRandomBot):
         state_dict = torch.load(file_path, map_location=self._device)
         self._policy_net.load_state_dict(state_dict)
 
-    def _calculate_discounted_reward_sums(self, reward: int, steps: int) -> List[float]:
+    def _calculate_discounted_reward_sums(self, steps: int) -> List[float]:
         discounted_reward_sums = []
         rewards = [0.0 for _ in range(steps)]
-        rewards[-1] = float(reward)
+        rewards[-1] = float(self._reward)
 
         for i in range(steps - 1, -1, -1):
             sum_reward = self._calculate_discounted_reward_sum(rewards[i:])
@@ -241,33 +226,10 @@ class SimpleDqnBot(SemiRandomBot):
             discounted_reward_sum += self._gamma ** i * reward
         return discounted_reward_sum
 
-    def _prepare_for_next_episode(self) -> None:
+    def _prepare_next_round(self) -> None:
         self._previous_possible_moves = None
         self._previous_state = None
         self._previous_move = None
         self._current_state = None
         self._current_move = None
         self._previous_chips = self.get_amount_of_chips()
-
-    def _track_progress(self) -> None:
-        if self._summary_writer is None:
-            self._init_summary_writer()
-
-        self._write_train_summary()
-
-    def _init_summary_writer(self) -> None:
-        train_amount = self._train_amount
-        self._summary_writer = SummaryWriter(
-            comment=f' - {type(self).__name__} : ' +
-                    f'alpha={self._alpha}, gamma={self._gamma}, '
-                    f'train={train_amount}'
-        )
-        self._summary_writer.add_graph(self._policy_net, self._current_state)
-
-    def _write_train_summary(self) -> None:
-        if self._episode_cnt % int(self._train_amount / 100) == 0:
-            self._summary_writer.add_scalar('Reward', self._rewards_sum, self._episode_cnt)
-
-            for name, param in self._policy_net.named_parameters():
-                self._summary_writer.add_histogram(name, param, self._episode_cnt)
-                self._summary_writer.add_histogram(f'{name}_grad', param.grad, self._episode_cnt)
