@@ -1,4 +1,4 @@
-from . import ReplayMemory, StateInterpreter
+from . import ReplayMemory, StateInterpreterV1 as StateInterpreter
 from .. import SemiRandomBot, Mode
 from ... import Moves, State
 from datetime import datetime
@@ -50,7 +50,7 @@ class SimpleDqnBot(SemiRandomBot):
         self._reward = 0
 
         self._replay_memory = ReplayMemory()
-        self._state_interpreter = StateInterpreter(chips)
+        self._state_interpreter = StateInterpreter(self)
 
         self._device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self._policy_net = self._create_neural_network()
@@ -99,7 +99,7 @@ class SimpleDqnBot(SemiRandomBot):
 
     def _update_states(self, state: State) -> None:
         self._previous_state = self._current_state
-        current_state = self._state_interpreter.interpret(self._hand, state, self._chips)
+        current_state = self._state_interpreter.interpret(state)
         self._current_state = torch.as_tensor([current_state], dtype=torch.float32).to(self._device)
 
     def _update_moves(self, move: Moves) -> None:
@@ -118,7 +118,7 @@ class SimpleDqnBot(SemiRandomBot):
 
     def _determine_current_move(self, possible_moves: List[Moves]) -> None:
         self._previous_possible_moves = possible_moves
-        if self._mode is Mode.TRAIN and random() < self._epsilon:
+        if self._mode is Mode.TRAIN and random() < round(self._epsilon, 2):
             self._explore(possible_moves)
         else:
             self._exploit(possible_moves)

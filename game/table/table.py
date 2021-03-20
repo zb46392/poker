@@ -3,7 +3,7 @@ from .observers import Observers
 from .players import Players as TablePlayers
 from copy import deepcopy
 from game import Card, Deck, Moves, Phases, Player as BasicPlayer, State, StrongestFinalHandFinder
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Tuple, Type
 
 
 class Table:
@@ -73,7 +73,6 @@ class Table:
         self._current_raise = self._current_bet = self._small_bet
 
         self.init_betting_round(self._players.get_by_position(3))
-        self._pot += self.take_from_pot_leftover(self._pot_leftover)
 
         self.update_round_active_state()
 
@@ -115,10 +114,18 @@ class Table:
     def init_pot_collection_phase(self) -> None:
         sorted_players = self.sort_players_by_score()
         individual_pot_collection = self.split_pot_among_players(sorted_players)
+        pot_leftover_collections = 0
 
         for player in self._players:
             if player in individual_pot_collection:
-                player.receive_chips(self.take_from_pot(individual_pot_collection[player]))
+                collecting_chips = self.take_from_pot(individual_pot_collection[player])
+                same_win_amount = list(individual_pot_collection.values()).count(individual_pot_collection[player])
+                total_pot_leftover = self._pot_leftover * (pot_leftover_collections + 1)
+                if self._pot_leftover > 0 and total_pot_leftover % same_win_amount == 0:
+                    collecting_chips += self.take_from_pot_leftover(int(total_pot_leftover / same_win_amount))
+                    pot_leftover_collections += 1
+
+                player.receive_chips(collecting_chips)
             else:
                 player.receive_chips(0)
 
@@ -168,7 +175,7 @@ class Table:
                     break
                 continue
 
-            move = player.make_move(moves, self.generate_game_state())
+            move = player.make_move(moves, self.generate_game_state(tuple(moves)))
 
             raise_cnt_before_move_execution = self._raise_cnt
 
@@ -251,13 +258,14 @@ class Table:
     def is_raising_capped(self) -> bool:
         return not self._raise_cnt < 4
 
-    def generate_game_state(self) -> State:
+    def generate_game_state(self, allowed_moves: Tuple[Moves]) -> State:
         return State(
-            community_cards=[Card(c.rank, c.suit, c.value) for c in self._community_cards],
+            community_cards=tuple(Card(c.rank, c.suit, c.value) for c in self._community_cards),
             total_nbr_of_players=self._players.count() + len(self._players_who_lost),
             nbr_of_active_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
             current_phase=self._current_phase,
-            is_raising_capped=self.is_raising_capped()
+            is_raising_capped=self.is_raising_capped(),
+            allowed_moves=allowed_moves
         )
 
     def execute_player_move(self, player: TablePlayers, move: Moves) -> None:

@@ -1,10 +1,11 @@
-from game import Card, Phases
-from typing import NamedTuple, List
+from game import Card, Phases, Moves
+from typing import NamedTuple, Tuple
 
 
 class State(NamedTuple):
-    community_cards: List[Card]
+    community_cards: Tuple[Card]
     total_nbr_of_players: int
     nbr_of_active_players: int
     current_phase: Phases
     is_raising_capped: bool
+    allowed_moves: Tuple[Moves]
