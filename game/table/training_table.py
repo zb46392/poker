@@ -1,5 +1,5 @@
 from game.table import Table
-from game.player import Player as BasePlayer, Mode
+from game.player import Player as BasePlayer, Mode, SimpleDqnBot
 from game.player.monitor import MonitoredSimpleDqnBot
 from typing import List, Type
 
@@ -7,8 +7,20 @@ from typing import List, Type
 class TrainingTable(Table):
     def __init__(self, players_classes: List[Type[BasePlayer]]) -> None:
         super().__init__(players_classes)
-        self._monitoring_players = [player.basic_player for player in self._players if
-                                    player.player_type == MonitoredSimpleDqnBot.__name__]
+        self._monitorable_player_class_names = [MonitoredSimpleDqnBot.__name__]
+        self._trainable_player_class_names = [SimpleDqnBot.__name__, MonitoredSimpleDqnBot.__name__]
+        self._monitoring_players = []
+        self._training_players = []
+
+        self._acquire_special_players()
+
+    def _acquire_special_players(self) -> None:
+        for player in self._players:
+            if player.player_type in self._monitorable_player_class_names:
+                self._monitoring_players.append(player.basic_player)
+
+            if player.player_type in self._trainable_player_class_names:
+                self._training_players.append(player.basic_player)
 
     def reset(self) -> None:
         self._reset_players()
@@ -71,11 +83,11 @@ class TrainingTable(Table):
             player.deactivate_monitoring()
 
     def set_player_mode(self, mode: Mode) -> None:
-        for player in self._monitoring_players:
+        for player in self._training_players:
             player.mode = mode
 
     def save_player_model(self) -> None:
-        for player in self._monitoring_players:
+        for player in self._training_players:
             player.save_model()
 
     def finish(self) -> None:

@@ -16,13 +16,17 @@ VALIDATION_EPISODES_AMOUNT = 100
 VALIDATION_AMOUNT = 100
 # LOAD_MODEL_PATH = 'models/SimpleDqnBot_model_2020_09_20_19_27_49.weights'
 LOAD_MODEL_PATH = None
+SHOULD_SAVE_MODEL = False
+INIT_CHIPS = 10
 
 
 def play():
-    global TRAINING_EPISODES_AMOUNT, VALIDATION_EPISODES_AMOUNT, VALIDATION_AMOUNT
+    global TRAINING_EPISODES_AMOUNT, VALIDATION_EPISODES_AMOUNT, VALIDATION_AMOUNT, INIT_CHIPS, SHOULD_SAVE_MODEL
     validation_frequency = TRAINING_EPISODES_AMOUNT / VALIDATION_AMOUNT
+    Table.INIT_CHIPS = INIT_CHIPS
 
     prepare_dqn()
+    prepare_monitored_dqn()
     table = TrainingTable([MonitoredSimpleDqnBot, SemiRandomBot, SemiRandomBot])
     monitored_player_name = table.monitoring_player_names[0]
     total_win_cnt = {player_name: 0 for player_name in table.player_names}
@@ -59,7 +63,10 @@ def play():
             print_table_row(train_episode, valid_win_cnt.get(monitored_player_name))
         perc = round((100 / TRAINING_EPISODES_AMOUNT) * train_episode, 2)
         print(f'\rTRAINING: {train_episode}/{TRAINING_EPISODES_AMOUNT} ({int(perc)}%)', end='')
-    table.save_player_model()
+
+    if SHOULD_SAVE_MODEL:
+        table.save_player_model()
+
     table.finish()
 
     print()
@@ -68,7 +75,6 @@ def play():
 def prepare_dqn() -> None:
     global LOAD_MODEL_PATH, ALPHA, GAMMA, EPSILON, EPSILON_FLOOR, SHOULD_EPSILON_DECAY
 
-    Table.INIT_CHIPS = 10
     SimpleDqnBot.LOAD_MODEL = LOAD_MODEL_PATH
     SimpleDqnBot.ALPHA = ALPHA
     SimpleDqnBot.GAMMA = GAMMA
@@ -76,6 +82,12 @@ def prepare_dqn() -> None:
     SimpleDqnBot.EPSILON_FLOOR = EPSILON_FLOOR
     SimpleDqnBot.EPSILON_DECAY = calculate_epsilon_decay()
     SimpleDqnBot.SHOULD_EPSILON_DECAY = SHOULD_EPSILON_DECAY
+
+
+def prepare_monitored_dqn() -> None:
+    global VALIDATION_AMOUNT
+
+    MonitoredSimpleDqnBot.MONITOR_FREQUENCY = VALIDATION_AMOUNT
 
 
 def calculate_epsilon_decay() -> float:

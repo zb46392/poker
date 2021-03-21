@@ -386,7 +386,7 @@ class Table:
                 is_pot_collection = False
 
             else:
-                individual_pot_collection = self.split_sub_pot_among_players(collecting_players, sub_pot)
+                individual_pot_collection = self.split_sub_pot_among_players(collecting_players)
                 is_pot_collection = self.should_pot_collection_continue(collecting_players, players_grouped_by_strength)
 
                 for player in collecting_players:
@@ -430,25 +430,49 @@ class Table:
 
         return sub_pot_portion
 
-    def split_sub_pot_among_players(self, collecting_players: List[TablePlayers], sub_pot: int) \
-            -> Dict[TablePlayers, int]:
+    def split_sub_pot_among_players(self, collecting_players: List[TablePlayers]) -> Dict[TablePlayers, int]:
         individual_pot_collection = {p: 0 for p in collecting_players}
-        individual_over_bet = {p: 0 for p in collecting_players}
-        lowest_bet = self.find_lowest_bet(collecting_players)
-        actual_win = sub_pot
+        highest_bet = self.find_highest_player_bet(collecting_players)
+        players_bets_asc = [{
+            'bet': highest_bet,
+            'total_players': 0,
+            'collecting_players': 0
+        }]
+
+        for player in self._players:
+            index = None
+            for i, player_bet in enumerate(players_bets_asc):
+                if player.total_bet < player_bet['bet']:
+                    index = i
+                    break
+
+            if index is not None:
+                players_bets_asc.insert(index, {
+                    'bet': player.total_bet,
+                    'total_players': 0,
+                    'collecting_players': 0
+                })
+
+        for player in self._players:
+            for player_bet in players_bets_asc:
+                if player.total_bet == player_bet['bet']:
+                    player_bet['total_players'] += 1
+                    if player in collecting_players:
+                        player_bet['collecting_players'] += 1
+                    break
+
+                if player.total_bet > player_bet['bet']:
+                    player_bet['total_players'] += 1
+                    if player in collecting_players:
+                        player_bet['collecting_players'] += 1
 
         for player in collecting_players:
-            over_bet = player.total_bet - lowest_bet
-            own_bet = player.total_bet
-
-            individual_over_bet[player] = over_bet
-            individual_pot_collection[player] += own_bet
-            actual_win -= own_bet
-
-        individual_win = actual_win / len(collecting_players)
-
-        for player in collecting_players:
-            individual_pot_collection[player] += individual_win
+            sub = 0
+            for player_bet in players_bets_asc:
+                if player.total_bet >= player_bet['bet']:
+                    individual_pot_collection[player] += \
+                        ((player_bet['bet'] - sub) * player_bet['total_players']) / player_bet['collecting_players']
+                sub = player_bet['bet']
 
         return individual_pot_collection
 

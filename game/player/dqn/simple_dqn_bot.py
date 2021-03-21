@@ -18,11 +18,11 @@ class SimpleDqnBot(SemiRandomBot):
 
     Batch = Tuple[PreviousStates, PreviousActions, PreviousPossibleActions, NextStates]
 
-    ALPHA = 0.001
+    ALPHA = 0.0001
     GAMMA = 0.999
-    EPSILON = 0.0
+    EPSILON = 1.0
     EPSILON_FLOOR = 0.1
-    EPSILON_DECAY = 0
+    EPSILON_DECAY = 1e-06
     MODE = Mode.TRAIN
     SHOULD_EPSILON_DECAY = False
     LOAD_MODEL = None
@@ -47,7 +47,7 @@ class SimpleDqnBot(SemiRandomBot):
         self._previous_move = None
         self._current_state = None
         self._current_move = None
-        self._reward = 0
+        self._current_reward = 0
 
         self._replay_memory = ReplayMemory()
         self._state_interpreter = StateInterpreter(self)
@@ -66,6 +66,11 @@ class SimpleDqnBot(SemiRandomBot):
 
     @mode.setter
     def mode(self, mode: Mode) -> None:
+        if mode is Mode.TRAIN:
+            self._policy_net.train()
+        else:
+            self._policy_net.eval()
+
         self._mode = mode
 
     def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
@@ -78,7 +83,7 @@ class SimpleDqnBot(SemiRandomBot):
 
     def receive_chips(self, amount: int) -> None:
         super().receive_chips(amount)
-        self._update_reward()
+        self._update_current_reward()
         if self._mode is Mode.TRAIN:
             self._execute_training_responsibilities()
 
@@ -110,8 +115,8 @@ class SimpleDqnBot(SemiRandomBot):
         if self._should_epsilon_decay and self._epsilon > self._epsilon_floor:
             self._epsilon -= self._epsilon_decay
 
-    def _update_reward(self) -> None:
-        self._reward = self._chips - self._previous_chips
+    def _update_current_reward(self) -> None:
+        self._current_reward = self.get_amount_of_chips() - self._previous_chips
 
     def _is_game_over(self) -> bool:
         return self._chips == 0 or self._chips == self._state_interpreter.total_chips_amount
@@ -155,8 +160,6 @@ class SimpleDqnBot(SemiRandomBot):
                 return self._all_moves[i]
 
     def _update_policy_net(self) -> None:
-        self._policy_net.train()
-
         batch = self._create_batch()
         previous_states, previous_moves, previous_possible_actions, next_states = batch
 
@@ -193,7 +196,6 @@ class SimpleDqnBot(SemiRandomBot):
         return target_preds
 
     def _inference(self, state: torch.Tensor) -> torch.Tensor:
-        self._policy_net.eval()
         with torch.no_grad():
             pred = self._policy_net(state)
 
@@ -212,7 +214,7 @@ class SimpleDqnBot(SemiRandomBot):
     def _calculate_discounted_reward_sums(self, steps: int) -> List[float]:
         discounted_reward_sums = []
         rewards = [0.0 for _ in range(steps)]
-        rewards[-1] = float(self._reward)
+        rewards[-1] = float(self._current_reward)
 
         for i in range(steps - 1, -1, -1):
             sum_reward = self._calculate_discounted_reward_sum(rewards[i:])
