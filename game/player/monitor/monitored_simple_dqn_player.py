@@ -12,7 +12,7 @@ class MonitoredSimpleDqnBot(SimpleDqnBot):
         self._average_win = 0
         self._calculation_cnt = 0
         self._monitor_episode_cnt = 0
-        self._monitor = Monitor(self._policy_net, self._generate_monitoring_comment_params())
+        self._monitor = Monitor(self._nn.model, self._generate_monitoring_comment_params())
         self._monitor_frequency = self.MONITOR_FREQUENCY
         self._is_monitoring = False
 
@@ -25,8 +25,8 @@ class MonitoredSimpleDqnBot(SimpleDqnBot):
 
     def _generate_monitoring_comment_params(self) -> Dict[str, str]:
         return {
-            'alpha': self._alpha,
-            'gamma': self._gamma,
+            'alpha': self._nn.alpha,
+            'gamma': self._nn.gamma,
             'epsilon': self._epsilon,
             'epsilon_floor': self._epsilon_floor,
             'epsilon_decay': self._epsilon_decay

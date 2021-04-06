@@ -4,6 +4,7 @@ from game import SemiRandomBot, SimpleDqnBot, OpponentBotGold, OpponentBotSilver
 from game import Table, TrainingTable
 from game.table.observer import TerminalObserver, FileObserver
 from game.player import Mode as PlayerMode
+from game.player.dqn import NeuralNetwork
 from game.player.monitor import MonitoredSimpleDqnBot
 
 ALPHA = 0.0001
@@ -22,7 +23,9 @@ INIT_CHIPS = 10
 
 def play():
     global TRAINING_EPISODES_AMOUNT, VALIDATION_EPISODES_AMOUNT, VALIDATION_AMOUNT, INIT_CHIPS, SHOULD_SAVE_MODEL
-    validation_frequency = TRAINING_EPISODES_AMOUNT / VALIDATION_AMOUNT
+    validation_frequency = TRAINING_EPISODES_AMOUNT + 1
+    if VALIDATION_AMOUNT > 0:
+        validation_frequency = TRAINING_EPISODES_AMOUNT / VALIDATION_AMOUNT
     Table.INIT_CHIPS = INIT_CHIPS
 
     prepare_dqn()
@@ -75,9 +78,10 @@ def play():
 def prepare_dqn() -> None:
     global LOAD_MODEL_PATH, ALPHA, GAMMA, EPSILON, EPSILON_FLOOR, SHOULD_EPSILON_DECAY
 
-    SimpleDqnBot.LOAD_MODEL = LOAD_MODEL_PATH
-    SimpleDqnBot.ALPHA = ALPHA
-    SimpleDqnBot.GAMMA = GAMMA
+    NeuralNetwork.LOAD_MODEL = LOAD_MODEL_PATH
+    NeuralNetwork.ALPHA = ALPHA
+    NeuralNetwork.GAMMA = GAMMA
+
     SimpleDqnBot.EPSILON = EPSILON
     SimpleDqnBot.EPSILON_FLOOR = EPSILON_FLOOR
     SimpleDqnBot.EPSILON_DECAY = calculate_epsilon_decay()
