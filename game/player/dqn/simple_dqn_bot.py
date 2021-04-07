@@ -16,10 +16,10 @@ class SimpleDqnBot(SemiRandomBot):
 
     def __init__(self, chips: int) -> None:
         super().__init__(chips)
-        self._starting_chips_amount = self.get_amount_of_chips()
-        self._total_chips_amount = None
         self._all_moves = [move for move in Moves]
         self._moves_indices = {self._all_moves[i]: i for i in range(len(self._all_moves))}
+        self._total_chips_amount = None
+        self._starting_chips = chips
 
         self._mode = SimpleDqnBot.MODE
 
@@ -58,7 +58,7 @@ class SimpleDqnBot(SemiRandomBot):
             self._execute_replay_memory_responsibilities()
 
         if self._total_chips_amount is None:
-            self._determine_total_chips_amount(state)
+            self._total_chips_amount = state.total_chips
 
         return self._current_move
 
@@ -69,6 +69,9 @@ class SimpleDqnBot(SemiRandomBot):
             self._execute_training_responsibilities()
 
         self._prepare_next_round()
+
+    def save_model(self) -> None:
+        self._nn.save_model()
 
     def _update_states(self, state: State) -> None:
         self._previous_state = self._current_state
@@ -89,8 +92,7 @@ class SimpleDqnBot(SemiRandomBot):
             self._epsilon -= self._epsilon_decay
 
     def _update_current_reward(self) -> None:
-        if self._current_chips is not None and self._previous_chips is not None:
-            self._current_reward = self._current_chips - self._previous_chips
+        self._current_reward = self.get_amount_of_chips() - self._starting_chips
 
     def _is_game_over(self) -> bool:
         return self._chips == 0 or self._chips == self._total_chips_amount
@@ -100,9 +102,6 @@ class SimpleDqnBot(SemiRandomBot):
             self._explore(possible_moves)
         else:
             self._exploit(possible_moves)
-
-    def _determine_total_chips_amount(self, state: State) -> None:
-        self._total_chips_amount = state.total_nbr_of_players * self._starting_chips_amount
 
     def _execute_replay_memory_responsibilities(self) -> None:
         if self._previous_state is not None:
@@ -125,8 +124,7 @@ class SimpleDqnBot(SemiRandomBot):
     def _choose_best_action(self, possible_moves: List[Moves]) -> Moves:
         interpretable_state = InterpretableState(game_state=self._current_state,
                                                  hand=tuple(self.get_hand()),
-                                                 current_chips_amount=self._current_chips,
-                                                 initial_chips_amount=self._starting_chips_amount)
+                                                 current_chips_amount=self._current_chips)
         decision = self._nn.make_decision(self._nn.interpret_state(interpretable_state))
 
         for i in decision:
@@ -137,12 +135,10 @@ class SimpleDqnBot(SemiRandomBot):
         previous_move_index = self._moves_indices.get(self._previous_move)
         interpretable_previous_state = InterpretableState(game_state=self._previous_state,
                                                           hand=tuple(self.get_hand()),
-                                                          current_chips_amount=self._previous_chips,
-                                                          initial_chips_amount=self._starting_chips_amount)
+                                                          current_chips_amount=self._previous_chips)
         interpretable_current_state = InterpretableState(game_state=self._current_state,
                                                          hand=tuple(self.get_hand()),
-                                                         current_chips_amount=self._current_chips,
-                                                         initial_chips_amount=self._starting_chips_amount)
+                                                         current_chips_amount=self._current_chips)
         previous_possible_moves_indices = tuple([self._moves_indices[a] for a in self._previous_possible_moves])
 
         return (
@@ -163,3 +159,4 @@ class SimpleDqnBot(SemiRandomBot):
         self._current_state = None
         self._current_move = None
         self._current_chips = None
+        self._starting_chips = self.get_amount_of_chips()

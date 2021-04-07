@@ -140,7 +140,6 @@ class OpponentBot(Player):
         hs = self.calculate_hand_strength(state)
         return int(round(hs * 100))
 
-
     def _is_hand_in_1_st_group(self) -> bool:
         """
         AA, AKs, KK, QQ, JJ
@@ -277,22 +276,21 @@ class OpponentBot(Player):
 
         c1, c2 = sorted(self.get_hand(), reverse=True)
         return (
-            (c1.rank == 'Ace' and c2.rank == '9')
-            or (c1.rank == 'King' and c2.rank == '9')
-            or (c1.rank == 'Queen' and c2.rank == '9')
-            or (c1.rank == 'Jack' and c2.rank == '7' and c1.suit == c2.suit)
-            or (c1.rank == '10' and c2.rank == '8')
-            or (c1.rank == '9' and c2.rank == '6' and c1.suit == c2.suit)
-            or (c1.rank == '8' and c2.rank == '7')
-            or (c1.rank == '8' and c2.rank == '5' and c1.suit == c2.suit)
-            or (c1.rank == '7' and c2.rank == '6')
-            or (c1.rank == '7' and c2.rank == '4' and c1.suit == c2.suit)
-            or (c1.rank == '6' and c2.rank == '5')
-            or (c1.rank == '5' and c2.rank == '4')
-            or (c1.rank == '4' and c2.rank == '2' and c1.suit == c2.suit)
-            or (c1.rank == '3' and c2.rank == '2' and c1.suit == c2.suit)
+                (c1.rank == 'Ace' and c2.rank == '9')
+                or (c1.rank == 'King' and c2.rank == '9')
+                or (c1.rank == 'Queen' and c2.rank == '9')
+                or (c1.rank == 'Jack' and c2.rank == '7' and c1.suit == c2.suit)
+                or (c1.rank == '10' and c2.rank == '8')
+                or (c1.rank == '9' and c2.rank == '6' and c1.suit == c2.suit)
+                or (c1.rank == '8' and c2.rank == '7')
+                or (c1.rank == '8' and c2.rank == '5' and c1.suit == c2.suit)
+                or (c1.rank == '7' and c2.rank == '6')
+                or (c1.rank == '7' and c2.rank == '4' and c1.suit == c2.suit)
+                or (c1.rank == '6' and c2.rank == '5')
+                or (c1.rank == '5' and c2.rank == '4')
+                or (c1.rank == '4' and c2.rank == '2' and c1.suit == c2.suit)
+                or (c1.rank == '3' and c2.rank == '2' and c1.suit == c2.suit)
         )
-
 
     def calculate_ehs(self, state: State) -> float:
         f"""
@@ -307,10 +305,10 @@ class OpponentBot(Player):
 
     def calculate_hand_strength(self, state: State) -> float:
         ahead = tied = behind = 0
-        my_final_hand = StrongestFinalHandFinder.find(self.get_hand() + state.community_cards)
+        my_final_hand = StrongestFinalHandFinder.find(self.get_hand() + list(state.community_cards))
 
         for opp_hand in self._create_opponent_hand_combinations(state):
-            opp_final_hand = StrongestFinalHandFinder.find(list(opp_hand) + state.community_cards)
+            opp_final_hand = StrongestFinalHandFinder.find(list(opp_hand) + list(state.community_cards))
 
             stronger_hand = StrongestFinalHandFinder.find_stronger_hand(my_final_hand, opp_final_hand)
 
@@ -340,12 +338,12 @@ class OpponentBot(Player):
         }
         total_hand_potential = {'ahead': 0, 'behind': 0, 'tied': 0}
 
-        my_final_hand = StrongestFinalHandFinder.find(self.get_hand() + state.community_cards)
+        my_final_hand = StrongestFinalHandFinder.find(self.get_hand() + list(state.community_cards))
 
         opp_hand_combos = self._create_opponent_hand_combinations(state)
 
         for opp_combo in opp_hand_combos:
-            opp_final_hand = StrongestFinalHandFinder.find(list(opp_combo) + state.community_cards)
+            opp_final_hand = StrongestFinalHandFinder.find(list(opp_combo) + list(state.community_cards))
 
             stronger_hand = StrongestFinalHandFinder.find_stronger_hand(my_final_hand, opp_final_hand)
 
@@ -396,7 +394,7 @@ class OpponentBot(Player):
                      total_hand_potential['ahead'] + total_hand_potential['tied'] + total_hand_potential['behind']
              )
 
-        hs **= (state.nbr_of_players - 1)
+        hs **= (state.total_players - 1)
 
         return hs, npot / 1000, ppot / 1000
 
@@ -404,7 +402,7 @@ class OpponentBot(Player):
         deck = Deck().get_cards()
         indexes = []
         popped_cards = 0
-        opponent_hand_combinatios = []
+        opponent_hand_combinations = []
 
         for i, c in enumerate(deck):
             if c in self.get_hand() or c in state.community_cards:
@@ -416,9 +414,9 @@ class OpponentBot(Player):
 
         for i, c1 in enumerate(deck):
             for c2 in deck[i + 1:]:
-                opponent_hand_combinatios.append((c1, c2))
+                opponent_hand_combinations.append((c1, c2))
 
-        return opponent_hand_combinatios
+        return opponent_hand_combinations
 
     def _create_community_combinations(self, opp_hand: Tuple[Card, Card], state: State) -> List[List[Card]]:
         deck = Deck().get_cards()
@@ -451,10 +449,10 @@ class OpponentBot(Player):
             elif nbr_of_comm_cards < 4:
                 for i, c1 in enumerate(deck):
                     for c2 in deck[i + 1:]:
-                        community_combos.append(state.community_cards + [c1, c2])
+                        community_combos.append(list(state.community_cards) + [c1, c2])
 
             elif nbr_of_comm_cards < 5:
                 for c in deck:
-                    community_combos.append(state.community_cards + [c])
+                    community_combos.append(list(state.community_cards) + [c])
 
         return community_combos

@@ -12,9 +12,15 @@ GAMMA = 0.999
 EPSILON = 1.0
 EPSILON_FLOOR = 0.1
 SHOULD_EPSILON_DECAY = True
-TRAINING_EPISODES_AMOUNT = 1_000_000
+
+TRAINING_EPISODES_AMOUNT = 1000000
 VALIDATION_EPISODES_AMOUNT = 100
 VALIDATION_AMOUNT = 100
+MONITOR_FREQUENCY = VALIDATION_AMOUNT
+
+SHOULD_MONITOR_TRAINING = False
+SHOULD_MONITOR_VALIDATION = True
+
 # LOAD_MODEL_PATH = 'models/SimpleDqnBot_model_2020_09_20_19_27_49.weights'
 LOAD_MODEL_PATH = None
 SHOULD_SAVE_MODEL = False
@@ -23,6 +29,7 @@ INIT_CHIPS = 10
 
 def play():
     global TRAINING_EPISODES_AMOUNT, VALIDATION_EPISODES_AMOUNT, VALIDATION_AMOUNT, INIT_CHIPS, SHOULD_SAVE_MODEL
+    global SHOULD_MONITOR_TRAINING, SHOULD_MONITOR_VALIDATION
     validation_frequency = TRAINING_EPISODES_AMOUNT + 1
     if VALIDATION_AMOUNT > 0:
         validation_frequency = TRAINING_EPISODES_AMOUNT / VALIDATION_AMOUNT
@@ -37,19 +44,31 @@ def play():
 
     print_table_head()
 
+    if SHOULD_MONITOR_TRAINING:
+        table.activate_player_monitor()
+    else:
+        table.deactivate_player_monitor()
+
     for train_episode in range(1, TRAINING_EPISODES_AMOUNT + 1):
-        table.run_tournament()
         table.reset()
+        table.run_tournament()
+
         if train_episode % validation_frequency == 0:
             table.set_player_mode(PlayerMode.VALID)
             table.activate_player_monitor()
-            valid_win_cnt = {player_name: 0 for player_name in table.player_names}
+            valid_win_cnt = {player_name: 0 for player_name in total_win_cnt}
+
+            if SHOULD_MONITOR_VALIDATION:
+                table.activate_player_monitor()
+            else:
+                table.deactivate_player_monitor()
 
             for valid_episode in range(VALIDATION_EPISODES_AMOUNT):
+                table.reset()
                 table.run_tournament()
+
                 total_win_cnt[table.get_winner()] += 1
                 valid_win_cnt[table.get_winner()] += 1
-                table.reset()
 
                 score = ''
                 names = ''
@@ -64,6 +83,11 @@ def play():
             table.set_player_mode(PlayerMode.TRAIN)
             table.deactivate_player_monitor()
             print_table_row(train_episode, valid_win_cnt.get(monitored_player_name))
+
+            if SHOULD_MONITOR_TRAINING:
+                table.activate_player_monitor()
+            else:
+                table.deactivate_player_monitor()
         perc = round((100 / TRAINING_EPISODES_AMOUNT) * train_episode, 2)
         print(f'\rTRAINING: {train_episode}/{TRAINING_EPISODES_AMOUNT} ({int(perc)}%)', end='')
 
@@ -89,9 +113,9 @@ def prepare_dqn() -> None:
 
 
 def prepare_monitored_dqn() -> None:
-    global VALIDATION_AMOUNT
+    global MONITOR_FREQUENCY
 
-    MonitoredSimpleDqnBot.MONITOR_FREQUENCY = VALIDATION_AMOUNT
+    MonitoredSimpleDqnBot.MONITOR_FREQUENCY = MONITOR_FREQUENCY
 
 
 def calculate_epsilon_decay() -> float:

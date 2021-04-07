@@ -4,7 +4,8 @@ from typing import NamedTuple, Tuple
 
 class State(NamedTuple):
     community_cards: Tuple[Card, ...]
-    total_nbr_of_players: int
+    total_players: int
+    total_chips: int
     nbr_of_active_players: int
     current_phase: Phases
     is_raising_capped: bool

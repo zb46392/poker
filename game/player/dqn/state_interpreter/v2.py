@@ -11,8 +11,8 @@ class V2(Base):
     def state_space(self) -> int:
         # CARDS IN HAND:    52
         # CARDS ON TABLE:   52
-        # ALLOWED ACTIONS:   5
         # HAND TYPE:        10
+        # ALLOWED ACTIONS:   5
         # --------------------
         # TOTAL:           119
 
@@ -23,7 +23,7 @@ class V2(Base):
         allowed_actions = self._generate_allowed_actions_state_part(state)
         hand_type = self._generate_hand_type_state_part(state)
 
-        return hand + community_cards + allowed_actions + hand_type
+        return hand + community_cards + hand_type + allowed_actions
 
     def _generate_cards_states_parts(self, state: InterpretableState) -> Tuple[List[float], List[float]]:
         hand_state_part = []

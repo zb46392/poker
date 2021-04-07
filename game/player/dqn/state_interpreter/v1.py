@@ -34,15 +34,15 @@ class V1(Base):
 
     @staticmethod
     def _generate_chips_state_part(state: InterpretableState) -> List[float]:
-        total_chips = state.initial_chips_amount * state.game_state.total_nbr_of_players
-        remaining_chips = total_chips - state.initial_chips_amount
+        total_chips = state.game_state.total_chips
+        remaining_chips = total_chips - state.current_chips_amount
 
         chips_state_part = []
 
         for _ in range(remaining_chips):
             chips_state_part.append(0.0)
 
-        for _ in range(state.initial_chips_amount):
+        for _ in range(state.current_chips_amount):
             chips_state_part.append(1.0)
 
         return chips_state_part

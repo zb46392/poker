@@ -72,13 +72,12 @@ class NeuralNetwork:
     @staticmethod
     def _print_cuda_info() -> None:
         if torch.cuda.is_available():
-            print('Cuda info:', '\n')
-            print('Version: ', torch.version.cuda)
-            print('Is cuda initialized:', torch.cuda.is_initialized())
-            print('Currently used GPU:', torch.cuda.current_device(), ', Device name :',
-                  torch.cuda.get_device_name())
-            print('GPU capabilities:', torch.cuda.get_device_capability())
-            print('GPU max cache:', torch.backends.cuda.cufft_plan_cache.max_size)
+            print('Cuda info:')
+            print(f'Version: {torch.version.cuda}')
+            print(f'Device name: {torch.cuda.get_device_name()}')
+            print(f'Currently used GPU: {torch.cuda.current_device()}')
+            print(f'GPU capabilities: {torch.cuda.get_device_capability()}')
+            print(f'GPU max cache: {torch.backends.cuda.cufft_plan_cache.max_size}')
         else:
             print('Cuda is not available...')
 

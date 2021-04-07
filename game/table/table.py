@@ -12,9 +12,10 @@ class Table:
     BIG_BET = 4
 
     def __init__(self, players_classes: List[Type[BasicPlayer]]) -> None:
-
+        self._init_chips = self.INIT_CHIPS
         self._deck = Deck()
         self._players = self._create_players(players_classes)
+        self._total_players = self._players.count()
         self._pot = 0
         self._pot_leftover = 0
         self._community_cards = []
@@ -37,7 +38,7 @@ class Table:
         previous_table_player = None
 
         for player_cnt in range(len(players_classes)):
-            basic_player = players_classes[player_cnt](self.INIT_CHIPS)
+            basic_player = players_classes[player_cnt](self._init_chips)
 
             if not isinstance(basic_player, BasicPlayer):
                 raise ValueError('Class has to be extended from game.Player base class')
@@ -261,7 +262,8 @@ class Table:
     def generate_game_state(self, allowed_moves: Tuple[Moves]) -> State:
         return State(
             community_cards=tuple(Card(c.rank, c.suit, c.value) for c in self._community_cards),
-            total_nbr_of_players=self._players.count() + len(self._players_who_lost),
+            total_players=self._total_players,
+            total_chips=self._total_players * self._init_chips,
             nbr_of_active_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
             current_phase=self._current_phase,
             is_raising_capped=self.is_raising_capped(),

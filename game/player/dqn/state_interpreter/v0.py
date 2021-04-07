@@ -40,7 +40,7 @@ class V0(Base):
     def _generate_chips_state_part(state: InterpretableState) -> List[float]:
         chips_state_part = []
 
-        for i in range(state.initial_chips_amount * state.game_state.total_nbr_of_players):
+        for i in range(state.game_state.total_chips):
             if i == (state.current_chips_amount - 1):
                 chips_state_part.insert(0, 1.0)
             else:

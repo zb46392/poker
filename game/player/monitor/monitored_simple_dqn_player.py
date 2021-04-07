@@ -17,11 +17,13 @@ class MonitoredSimpleDqnBot(SimpleDqnBot):
         self._is_monitoring = False
 
     def activate_monitoring(self) -> None:
-        self._reset_average_calculation()
         self._is_monitoring = True
 
     def deactivate_monitoring(self) -> None:
         self._is_monitoring = False
+
+    def reset(self) -> None:
+        self._reset_average_calculation()
 
     def _generate_monitoring_comment_params(self) -> Dict[str, str]:
         return {
