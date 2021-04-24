@@ -2,6 +2,7 @@ from .state_interpreter import InterpretableState
 from game.player.dqn.state_interpreter import StateInterpreterV2 as StateInterpreter
 from game.player import Mode
 from datetime import datetime
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -28,6 +29,7 @@ class NeuralNetwork:
     ALPHA = 0.0001
     GAMMA = 0.999
     LOAD_MODEL = None
+    SAVE_MODEL_DIR = 'models'
 
     def __init__(self):
         self._alpha = self.ALPHA  # Learning rate
@@ -41,6 +43,8 @@ class NeuralNetwork:
 
         if self.LOAD_MODEL is not None:
             self.load_model(self.LOAD_MODEL)
+
+        self._save_model_dir = self.SAVE_MODEL_DIR
 
         self._print_cuda_info()
 
@@ -65,6 +69,11 @@ class NeuralNetwork:
         network.add_module('relu_0', nn.ReLU())
         network.add_module('linear_1', nn.Linear(in_features=1000, out_features=1000))
         network.add_module('relu_1', nn.ReLU())
+
+        # network.add_module('linear_2', nn.Linear(in_features=1000, out_features=1000))
+        # network.add_module('relu_2', nn.ReLU())
+        # network.add_module('linear_3', nn.Linear(in_features=1000, out_features=out_size))
+
         network.add_module('linear_2', nn.Linear(in_features=1000, out_features=out_size))
         network.to(self._device)
         return network
@@ -136,11 +145,14 @@ class NeuralNetwork:
         return pred
 
     def save_model(self, name: Optional[str] = None) -> None:
+        path = Path(self.SAVE_MODEL_DIR)
         if name is None:
-            now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            name = f'Model_{now}.weights'
+            name = 'Model'
 
-        torch.save(self._policy_net.state_dict(), name)
+        now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        name += f'_{now}.pt'
+
+        torch.save(self._policy_net.state_dict(), path.joinpath(name))
 
     def load_model(self, file_path: str) -> None:
         state_dict = torch.load(file_path, map_location=self._device)

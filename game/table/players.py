@@ -4,10 +4,9 @@ from typing import List, Optional
 
 
 class Players:
-    def __init__(self, basic_player: Basic_Player, name: str = 'Player') -> None:
+    def __init__(self, basic_player: Basic_Player) -> None:
         self._basic_player = basic_player
         self._basic_player_type = basic_player.__class__.__name__
-        self._name = name
         self._current_bet = 0
         self._total_bet = 0
         self._score = 0
@@ -27,7 +26,7 @@ class Players:
 
     @property
     def name(self) -> str:
-        return self._name
+        return self._basic_player.name
 
     @property
     def current_bet(self) -> int:

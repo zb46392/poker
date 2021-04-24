@@ -25,7 +25,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('Ace', 'Club', 13), Card('Queen', 'Diamond', 11)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.HIGH_CARD, self.player_1.final_hand_type)
         self.assertEqual(8, self.player_1.score)
@@ -49,7 +49,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('Queen', 'Diamond', 11), Card('Queen', 'Spade', 11)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.PAIR, self.player_1.final_hand_type)
         self.assertEqual(20, self.player_1.score)
@@ -73,7 +73,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('Ace', 'Spade', 13), Card('King', 'Club', 12)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.TWO_PAIRS, self.player_1.final_hand_type)
         self.assertEqual(601, self.player_1.score)
@@ -97,7 +97,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('Ace', 'Heart', 13), Card('Ace', 'Spade', 13)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.TRIS, self.player_1.final_hand_type)
         self.assertEqual(4000, self.player_1.score)
@@ -121,7 +121,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('6', 'Spade', 5), Card('9', 'Diamond', 8)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.STRAIGHT, self.player_1.final_hand_type)
         self.assertEqual(60000, self.player_1.score)
@@ -145,7 +145,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('9', 'Club', 8), Card('8', 'Heart', 7)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.STRAIGHT, self.player_1.final_hand_type)
         self.assertEqual(195000, self.player_1.score)
@@ -169,7 +169,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('8', 'Diamond', 7), Card('7', 'Diamond', 6)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.FLUSH, self.player_1.final_hand_type)
         self.assertEqual(429000, self.player_1.score)
@@ -193,7 +193,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('6', 'Club', 5), Card('10', 'Club', 9)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.FLUSH, self.player_1.final_hand_type)
         self.assertEqual(198000, self.player_1.score)
@@ -217,7 +217,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('3', 'Spade', 2), Card('King', 'Spade', 12)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.FULL_HOUSE, self.player_1.final_hand_type)
         self.assertEqual(500002, self.player_1.score)
@@ -241,7 +241,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('King', 'Heart', 12), Card('3', 'Heart', 2)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.FULL_HOUSE, self.player_1.final_hand_type)
         self.assertEqual(6500012, self.player_1.score)
@@ -265,7 +265,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('King', 'Club', 12), Card('King', 'Heart', 12)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.POKER, self.player_1.final_hand_type)
         self.assertEqual(6600000, self.player_1.score)
@@ -289,7 +289,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('6', 'Heart', 5), Card('7', 'Heart', 6)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.STRAIGHT_FLUSH, self.player_1.final_hand_type)
         self.assertEqual(86000000, self.player_1.score)
@@ -313,7 +313,7 @@ class TestFindStrongestFinalHand(TestGame):
             [Card('9', 'Club', 8), Card('8', 'Club', 7)]
         )
 
-        self.table.find_players_final_hand()
+        self.table._find_players_final_hand()
 
         self.assertEqual(FinalHandType.ROYAL_FLUSH, self.player_1.final_hand_type)
         self.assertEqual(286000000, self.player_1.score)

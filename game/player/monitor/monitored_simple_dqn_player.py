@@ -1,14 +1,14 @@
 from . import Monitor
 from .. import SimpleDqnBot
 
-from typing import Dict
+from typing import Dict, Optional
 
 
 class MonitoredSimpleDqnBot(SimpleDqnBot):
     MONITOR_FREQUENCY = 100
 
-    def __init__(self, chips: int) -> None:
-        super().__init__(chips)
+    def __init__(self, chips: int, name: Optional[str]) -> None:
+        super().__init__(chips, name)
         self._average_win = 0
         self._calculation_cnt = 0
         self._monitor_episode_cnt = 0
@@ -22,7 +22,7 @@ class MonitoredSimpleDqnBot(SimpleDqnBot):
     def deactivate_monitoring(self) -> None:
         self._is_monitoring = False
 
-    def reset(self) -> None:
+    def reset_progress(self) -> None:
         self._reset_average_calculation()
 
     def _generate_monitoring_comment_params(self) -> Dict[str, str]:

@@ -4,18 +4,18 @@ from .state_interpreter import InterpretableState
 from .. import SemiRandomBot, Mode
 from ... import Moves, State
 from random import random
-from typing import List
+from typing import List, Optional
 
 
 class SimpleDqnBot(SemiRandomBot):
-    EPSILON = 1.0
+    EPSILON = 0.1
     EPSILON_FLOOR = 0.1
-    EPSILON_DECAY = 1e-06
+    EPSILON_DECAY = 0.0
     MODE = Mode.TRAIN
     SHOULD_EPSILON_DECAY = False
 
-    def __init__(self, chips: int) -> None:
-        super().__init__(chips)
+    def __init__(self, chips: int, name: Optional[str]) -> None:
+        super().__init__(chips, name)
         self._all_moves = [move for move in Moves]
         self._moves_indices = {self._all_moves[i]: i for i in range(len(self._all_moves))}
         self._total_chips_amount = None
@@ -70,8 +70,8 @@ class SimpleDqnBot(SemiRandomBot):
 
         self._prepare_next_round()
 
-    def save_model(self) -> None:
-        self._nn.save_model()
+    def save_model(self, name: Optional[str] = None) -> None:
+        self._nn.save_model(name)
 
     def _update_states(self, state: State) -> None:
         self._previous_state = self._current_state

@@ -2,7 +2,7 @@ from . import Player
 from .. import Moves, State
 from game import Card, Deck, Phases, StrongestFinalHandFinder
 from random import randint
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 class OpponentBot(Player):
@@ -17,8 +17,10 @@ class OpponentBot(Player):
     RAISE_THRESH = 50
     BLUFF_THRESH = 50
 
-    def __init__(self, chips: int, fold_thresh: int = None, raise_thresh: int = None,
-                 bluff_thresh: int = None):
+    def __init__(self, chips: int, name: Optional[str] = None,
+                 fold_thresh: Optional[int] = None,
+                 raise_thresh: Optional[int] = None,
+                 bluff_thresh: Optional[int] = None):
         """
         The lower the threshold the greater the probability for action to take.
 
@@ -26,7 +28,7 @@ class OpponentBot(Player):
         :param raise_thresh: threshold for raising - Between 1 and 100
         :param bluff_thresh: threshold for call/raise (bluffing) - Between 1 and 100
         """
-        super().__init__(chips)
+        super().__init__(chips, name)
         if fold_thresh is None:
             fold_thresh = OpponentBot.FOLD_THRESH
 
@@ -61,7 +63,7 @@ class OpponentBot(Player):
 
     def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
         """
-        On pre-flop make decision based on card group (see pre-flop evaluation in paper).
+        On pre-flop make decision based on card group (see _calculate_pre_flop_hand_strength function).
         Flop, turn, river make decision based just by hand strength,
         effective hand strength is computationally to intensive.
 
@@ -103,6 +105,7 @@ class OpponentBot(Player):
     def _calculate_pre_flop_hand_strength(self) -> int:
         """
         Strength calculation based on the Sklansky & Malmuth starting hands table.
+        https://www.thepokerbank.com/strategy/basic/starting-hand-selection/sklansky-groups/
 
         1 	AA, AKs, KK, QQ, JJ
         2 	AK, AQs, AJs, KQs, TT

@@ -7,7 +7,7 @@ class TestBlindCollection(TestGame):
         player2_before_blind = self.player_2.get_amount_of_chips()
         player3_before_blind = self.player_3.get_amount_of_chips()
 
-        self.table.collect_blinds()
+        self.table._collect_blinds()
 
         player1_after_blind = self.player_1.get_amount_of_chips()
         player2_after_blind = self.player_2.get_amount_of_chips()

@@ -48,8 +48,8 @@ class TestPotCollection(TestGame):
         self.player_3.total_bet = 25
         self.player_4.total_bet = 25
 
-        self.table.init_showdown_phase()
-        self.table.init_pot_collection_phase()
+        self.table._init_showdown_phase()
+        self.table._init_pot_collection_phase()
 
         self.assertEqual(200, self.player_1.get_amount_of_chips())
         self.assertEqual(100, self.player_2.get_amount_of_chips())
@@ -87,8 +87,8 @@ class TestPotCollection(TestGame):
         self.player_4.total_bet = 10
 
         self.table._pot = 40
-        self.table.init_showdown_phase()
-        self.table.init_pot_collection_phase()
+        self.table._init_showdown_phase()
+        self.table._init_pot_collection_phase()
 
         self.assertEqual(100, self.player_1.get_amount_of_chips())
         self.assertEqual(100, self.player_2.get_amount_of_chips())
@@ -127,8 +127,8 @@ class TestPotCollection(TestGame):
         self.player_4.current_move = self.moves.FOLD
 
         self.table._pot = 80
-        self.table.init_showdown_phase()
-        self.table.init_pot_collection_phase()
+        self.table._init_showdown_phase()
+        self.table._init_pot_collection_phase()
 
         self.assertEqual(126, self.player_1.get_amount_of_chips())
         self.assertEqual(126, self.player_2.get_amount_of_chips())
@@ -171,8 +171,8 @@ class TestPotCollection(TestGame):
         self.player_4.current_move = self.moves.ALL_IN
 
         self.table._pot = 27
-        self.table.init_showdown_phase()
-        self.table.init_pot_collection_phase()
+        self.table._init_showdown_phase()
+        self.table._init_pot_collection_phase()
 
         self.assertEqual(112, self.player_1.get_amount_of_chips())
         self.assertEqual(100, self.player_2.get_amount_of_chips())
@@ -212,8 +212,8 @@ class TestPotCollection(TestGame):
         self.player_4.total_bet = 15
 
         self.table._pot = 52
-        self.table.init_showdown_phase()
-        self.table.init_pot_collection_phase()
+        self.table._init_showdown_phase()
+        self.table._init_pot_collection_phase()
 
         self.assertEqual(107, self.player_1.get_amount_of_chips())
         self.assertEqual(115, self.player_2.get_amount_of_chips())
@@ -262,8 +262,8 @@ class TestPotCollection(TestGame):
         player_3.current_move = Moves.CHECK
         player_3._basic_player._chips = 51
 
-        table.init_showdown_phase()
-        table.init_pot_collection_phase()
+        table._init_showdown_phase()
+        table._init_pot_collection_phase()
 
         self.assertEqual(75, player_1.get_amount_of_chips())
         self.assertEqual(24, player_2.get_amount_of_chips())
@@ -318,8 +318,8 @@ class TestPotCollection(TestGame):
         player_4.current_move = Moves.ALL_IN
         player_4._basic_player._chips = 0
 
-        table.init_showdown_phase()
-        table.init_pot_collection_phase()
+        table._init_showdown_phase()
+        table._init_pot_collection_phase()
 
         self.assertEqual(38, player_1.get_amount_of_chips())
         self.assertEqual(174, player_2.get_amount_of_chips())
