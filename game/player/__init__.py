@@ -1,6 +1,7 @@
 from .player import Player
 from .dummy import Dummy
 from .mode import Mode
+from .terminal_player import TerminalPlayer
 from .random_bot import RandomBot
 from .semi_random_bot import SemiRandomBot
 from .dqn import SimpleDqnBot

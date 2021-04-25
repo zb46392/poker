@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-from game import Dummy, RandomBot, SemiRandomBot
-from game import Table
-from game.table.observer import TerminalObserver, FileObserver
+from game import SemiRandomBot, Table
+from game.table.observer import TerminalTextualObserver, FileTextualObserver
 
 
 def main():
     t = Table([SemiRandomBot, SemiRandomBot, SemiRandomBot])
-    o = TerminalObserver()
-    f = FileObserver()
+    o = TerminalTextualObserver()
+    f = FileTextualObserver()
     t.attach_observer(o)
     t.attach_observer(f)
     t.run_tournament()

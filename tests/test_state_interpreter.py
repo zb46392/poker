@@ -17,7 +17,9 @@ class TestStateInterpreterV1(TestCase):
             nbr_of_active_players=3,
             current_phase=Phases.RIVER,
             is_raising_capped=False,
-            allowed_moves=(Moves.CHECK, Moves.FOLD, Moves.RAISE)
+            allowed_moves=(Moves.CHECK, Moves.FOLD, Moves.RAISE),
+            pot=3,
+            current_bet=2
         )
 
         player.spend_chips(4)
@@ -73,7 +75,9 @@ class TestStateInterpreterV2(TestCase):
             nbr_of_active_players=3,
             current_phase=Phases.RIVER,
             is_raising_capped=False,
-            allowed_moves=(Moves.CALL, Moves.FOLD, Moves.RAISE)
+            allowed_moves=(Moves.CALL, Moves.FOLD, Moves.RAISE),
+            pot=3,
+            current_bet=2
         )
 
         inter = StateInterpreterV2()

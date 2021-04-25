@@ -1,5 +1,6 @@
 from copy import deepcopy
-from game import Card, FinalHandType, Moves, Player as Basic_Player, State
+from game import Card, FinalHandType, Moves, State
+from game.player import Player as Basic_Player
 from typing import List, Optional
 
 
@@ -167,7 +168,7 @@ class Players:
 
         return player
 
-    def find_by_move(self, move: Moves) -> List['Players']:
+    def find_by_move(self, move: Optional[Moves]) -> List['Players']:
         players = []
 
         for player in self:
@@ -217,3 +218,9 @@ class Players:
             return tmp
         else:
             raise StopIteration
+
+    def __str__(self) -> str:
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self)

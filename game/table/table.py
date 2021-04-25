@@ -2,7 +2,8 @@ from .observer import State as ObserverState, BaseObserver
 from .observers import Observers
 from .players import Players as TablePlayers
 from copy import deepcopy
-from game import Card, Deck, Moves, Phases, Player as BasicPlayer, State, StrongestFinalHandFinder
+from game import Card, Deck, Moves, Phases, State, StrongestFinalHandFinder
+from game.player import Player as BasicPlayer
 from typing import Dict, List, Optional, Tuple, Type
 
 
@@ -93,6 +94,8 @@ class Table:
         return dealer
 
     def _init_pre_flop_phase(self) -> None:
+        self._current_phase = Phases.PRE_FLOP
+
         self._deck.shuffle()
         self._deal_cards()
         self._collect_blinds()
@@ -102,42 +105,48 @@ class Table:
 
         self._update_round_active_state()
 
-        self._current_phase = Phases.PRE_FLOP
         self._notify_observers()
 
     def _init_flop_phase(self) -> None:
+        self._current_phase = Phases.FLOP
+
         self._deal_community_cards(3)
 
         if self._is_round_active:
             self._init_common_phase(self._small_bet)
 
-        self._current_phase = Phases.FLOP
         self._notify_observers()
 
     def _init_turn_phase(self) -> None:
+        self._current_phase = Phases.TURN
+
         self._deal_community_cards()
 
         if self._is_round_active:
             self._init_common_phase(self._big_bet)
 
-        self._current_phase = Phases.TURN
         self._notify_observers()
 
     def _init_river_phase(self) -> None:
+        self._current_phase = Phases.RIVER
+
         self._deal_community_cards()
 
         if self._is_round_active:
             self._init_common_phase(self._big_bet)
 
-        self._current_phase = Phases.RIVER
         self._notify_observers()
 
     def _init_showdown_phase(self) -> None:
-        self._find_players_final_hand()
         self._current_phase = Phases.SHOWDOWN
+
+        self._find_players_final_hand()
+
         self._notify_observers()
 
     def _init_pot_collection_phase(self) -> None:
+        self._current_phase = Phases.POT_COLLECTION
+
         sorted_players = self._sort_players_by_score()
         individual_pot_collection = self._split_pot_among_players(sorted_players)
         pot_leftover_collections = 0
@@ -157,7 +166,6 @@ class Table:
 
         self._pot_leftover += self._take_from_pot(self._pot)
 
-        self._current_phase = Phases.POT_COLLECTION
         self._notify_observers(individual_pot_collection)
 
     def _prepare_next_round(self) -> None:
@@ -292,7 +300,9 @@ class Table:
             nbr_of_active_players=self._players.count() - len(self._players.find_by_move(Moves.FOLD)),
             current_phase=self._current_phase,
             is_raising_capped=self._is_raising_capped(),
-            allowed_moves=allowed_moves
+            allowed_moves=allowed_moves,
+            pot=self._pot,
+            current_bet=self._current_bet
         )
 
     def _execute_player_move(self, player: TablePlayers, move: Moves) -> None:
@@ -328,7 +338,12 @@ class Table:
         return self._calculate_amount_to_call(player) + self._current_raise
 
     def _update_round_active_state(self) -> None:
-        self._is_round_active = self._players.count_active() > 1
+        total_players = self._players.count()
+        folded_players = len(self._players.find_by_move(Moves.FOLD))
+        not_folded_players = total_players - folded_players
+        none_move_players = len(self._players.find_by_move(None))
+
+        self._is_round_active = (self._players.count_active()) > 1 or (not_folded_players > 1 and none_move_players > 0)
 
     def _find_players_final_hand(self) -> None:
 

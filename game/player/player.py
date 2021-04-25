@@ -7,6 +7,7 @@ class Player(ABC):
     def __init__(self, chips: int, name: Optional[str] = None) -> None:
         self._chips = chips
         self._hand = []
+        self._wager = 0
         if name is None:
             name = type(self).__name__
         self._name = name
@@ -15,11 +16,17 @@ class Player(ABC):
     def name(self) -> str:
         return self._name
 
+    @property
+    def wager(self) -> int:
+        return self._wager
+
     def receive_chips(self, amount: int) -> None:
         self._chips += amount
+        self._wager = 0
 
     def spend_chips(self, amount: int) -> int:
         self._chips -= amount
+        self._wager += amount
         return amount
 
     def receive_cards(self, cards: List[Card]) -> None:
@@ -37,3 +44,9 @@ class Player(ABC):
     @abstractmethod
     def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
         pass
+
+    def __str__(self) -> str:
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self)
