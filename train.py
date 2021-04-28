@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-from game import SemiRandomBot, SimpleDqnBot, OpponentBotGold, OpponentBotSilver
+from game import SemiRandomBot, OpponentBotGold, OpponentBotSilver, SimpleDqnBot, MonitoredSimpleDqnBot, \
+    CollectiveSimpleDqnBot
 from game import Table, TrainingTable
-from game.table.observer import TerminalObserver, FileObserver
+from game.table.observer import TerminalTextualObserver, FileTextualObserver
 from game.player import Mode as PlayerMode
-from game.player.dqn import NeuralNetwork
-from game.player.monitor import MonitoredSimpleDqnBot
+from game.player.dqn import SimpleNeuralNetwork
 from typing import Dict
+import torch
 
 ALPHA = 0.1
 GAMMA = 0.999
@@ -29,8 +30,9 @@ INIT_CHIPS = 10
 PLAYERS = [MonitoredSimpleDqnBot, SemiRandomBot, SemiRandomBot]
 
 
-def play():
+def main():
     global TRAINING_EPISODES_AMOUNT, VALIDATION_EPISODES_AMOUNT, SHOULD_SAVE_MODEL
+    print_cuda_info()
 
     validation_frequency = calculate_validation_frequency()
 
@@ -80,12 +82,24 @@ def play():
     print()
 
 
+def print_cuda_info() -> None:
+    if torch.cuda.is_available():
+        print('Cuda info:')
+        print(f'Version: {torch.version.cuda}')
+        print(f'Device name: {torch.cuda.get_device_name()}')
+        print(f'Currently used GPU: {torch.cuda.current_device()}')
+        print(f'GPU capabilities: {torch.cuda.get_device_capability()}')
+        print(f'GPU max cache: {torch.backends.cuda.cufft_plan_cache.max_size}')
+    else:
+        print('Cuda is not available...')
+
+
 def prepare_dqn() -> None:
     global LOAD_MODEL_PATH, ALPHA, GAMMA, EPSILON, EPSILON_FLOOR, SHOULD_EPSILON_DECAY
 
-    NeuralNetwork.LOAD_MODEL = LOAD_MODEL_PATH
-    NeuralNetwork.ALPHA = ALPHA
-    NeuralNetwork.GAMMA = GAMMA
+    SimpleNeuralNetwork.LOAD_MODEL = LOAD_MODEL_PATH
+    SimpleNeuralNetwork.ALPHA = ALPHA
+    SimpleNeuralNetwork.GAMMA = GAMMA
 
     SimpleDqnBot.EPSILON = EPSILON
     SimpleDqnBot.EPSILON_FLOOR = EPSILON_FLOOR
@@ -209,10 +223,6 @@ def print_table_row(episodes_trained: int, table: TrainingTable,
 
     print(f'\r{row[:-1]}')
     print('+------------------+-----------------------------------+-------------------------+')
-
-
-def main():
-    play()
 
 
 if __name__ == '__main__':

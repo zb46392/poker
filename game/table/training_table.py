@@ -1,6 +1,5 @@
 from game.table import Table
-from game.player import Player as BasePlayer, Mode, SimpleDqnBot
-from game.player.monitor import MonitoredSimpleDqnBot
+from game.player import Player as BasePlayer, Mode, SimpleDqnBot, MonitoredSimpleDqnBot, CollectiveSimpleDqnBot
 from typing import List, Type
 
 
@@ -8,7 +7,8 @@ class TrainingTable(Table):
     def __init__(self, players_classes: List[Type[BasePlayer]]) -> None:
         super().__init__(players_classes)
         self._monitorable_player_class_names = [MonitoredSimpleDqnBot.__name__]
-        self._trainable_player_class_names = [SimpleDqnBot.__name__, MonitoredSimpleDqnBot.__name__]
+        self._trainable_player_class_names = [SimpleDqnBot.__name__, MonitoredSimpleDqnBot.__name__,
+                                              CollectiveSimpleDqnBot.__name__]
         self._monitoring_players = []
         self._training_players = []
 
@@ -42,7 +42,7 @@ class TrainingTable(Table):
 
     def save_player_model(self) -> None:
         for player in self._training_players:
-            player.save_model(player.name.replace(' ', '_').replace('(', '').replace(')', '').strip())
+            player.save_model()
 
     def finish(self) -> None:
         for player in self._monitoring_players:

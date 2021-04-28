@@ -2,7 +2,7 @@
 
 from game import Table, SemiRandomBot, SimpleDqnBot, OpponentBotGold
 from game.player import Mode as PlayerMode
-from game.player.dqn import NeuralNetwork
+from game.player.dqn import SimpleNeuralNetwork
 
 VALIDATION_EPISODES = 10_000
 LOAD_MODEL_PATH = 'models/model_random_alpha_0_01__6724.pt'
@@ -36,7 +36,7 @@ def main() -> None:
 def prepare_dqn() -> None:
     global LOAD_MODEL_PATH
 
-    NeuralNetwork.LOAD_MODEL = LOAD_MODEL_PATH
+    SimpleNeuralNetwork.LOAD_MODEL = LOAD_MODEL_PATH
     SimpleDqnBot.MODE = PlayerMode.VALID
 
 

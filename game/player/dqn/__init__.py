@@ -1,4 +1,10 @@
-from .neural_network import NeuralNetwork
+from .monitor import Monitor
+from .simple_neural_network import SimpleNeuralNetwork
+from .simple_neural_network_singleton import SimpleNeuralNetworkSingleton
+from .simple_neural_network_3l import SimpleNeuralNetwork3L
 from .replay_memory import ReplayMemory
 from .state_interpreter import StateInterpreterV0, StateInterpreterV1, StateInterpreterV2
 from .simple_dqn_bot import SimpleDqnBot
+from .collective_simple_dqn_bot import CollectiveSimpleDqnBot
+from .monitored_simple_dqn_bot import MonitoredSimpleDqnBot
+from .simple_dqn_bot_3l import SimpleDqnBot3l

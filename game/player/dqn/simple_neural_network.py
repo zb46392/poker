@@ -23,13 +23,11 @@ NextStates = States
 BatchOfExperiences = Tuple[PreviousStates, PreviousActions, AllPreviousPossibleActionsThisRound, NextStates]
 
 
-class NeuralNetwork:
-    INSTANCE = None
-
+class SimpleNeuralNetwork:
     ALPHA = 0.0001
     GAMMA = 0.999
-    LOAD_MODEL = None
-    SAVE_MODEL_DIR = 'models'
+    LOAD_PATH = None
+    SAVE_DIR = 'models'
 
     def __init__(self):
         self._alpha = self.ALPHA  # Learning rate
@@ -41,12 +39,10 @@ class NeuralNetwork:
         self._loss = nn.MSELoss()
         self._optim = optim.Adam(self._policy_net.parameters(), self._alpha)
 
-        if self.LOAD_MODEL is not None:
-            self.load_model(self.LOAD_MODEL)
+        if self.LOAD_PATH is not None:
+            self.load(self.LOAD_PATH)
 
-        self._save_model_dir = self.SAVE_MODEL_DIR
-
-        self._print_cuda_info()
+        self._save_dir = self.SAVE_DIR
 
     @property
     def alpha(self) -> float:
@@ -69,26 +65,9 @@ class NeuralNetwork:
         network.add_module('relu_0', nn.ReLU())
         network.add_module('linear_1', nn.Linear(in_features=1000, out_features=1000))
         network.add_module('relu_1', nn.ReLU())
-
-        # network.add_module('linear_2', nn.Linear(in_features=1000, out_features=1000))
-        # network.add_module('relu_2', nn.ReLU())
-        # network.add_module('linear_3', nn.Linear(in_features=1000, out_features=out_size))
-
         network.add_module('linear_2', nn.Linear(in_features=1000, out_features=out_size))
         network.to(self._device)
         return network
-
-    @staticmethod
-    def _print_cuda_info() -> None:
-        if torch.cuda.is_available():
-            print('Cuda info:')
-            print(f'Version: {torch.version.cuda}')
-            print(f'Device name: {torch.cuda.get_device_name()}')
-            print(f'Currently used GPU: {torch.cuda.current_device()}')
-            print(f'GPU capabilities: {torch.cuda.get_device_capability()}')
-            print(f'GPU max cache: {torch.backends.cuda.cufft_plan_cache.max_size}')
-        else:
-            print('Cuda is not available...')
 
     def activate_mode(self, mode: Mode) -> None:
         if mode is Mode.TRAIN:
@@ -144,17 +123,16 @@ class NeuralNetwork:
 
         return pred
 
-    def save_model(self, name: Optional[str] = None) -> None:
-        path = Path(self.SAVE_MODEL_DIR)
+    def save(self, name: Optional[str] = None) -> None:
+        path = Path(self._save_dir)
         if name is None:
-            name = 'Model'
+            name = f'{type(self).__name__}_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}'
 
-        now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-        name += f'_{now}.pt'
+        name += '.pt'
 
         torch.save(self._policy_net.state_dict(), path.joinpath(name))
 
-    def load_model(self, file_path: str) -> None:
+    def load(self, file_path: str) -> None:
         state_dict = torch.load(file_path, map_location=self._device)
         self._policy_net.load_state_dict(state_dict)
 
@@ -174,10 +152,3 @@ class NeuralNetwork:
         for i, reward in enumerate(rewards):
             discounted_reward_sum += self._gamma ** i * reward
         return discounted_reward_sum
-
-    @classmethod
-    def get_instance(cls) -> 'NeuralNetwork':
-        if cls.INSTANCE is None:
-            cls.INSTANCE = NeuralNetwork()
-
-        return cls.INSTANCE

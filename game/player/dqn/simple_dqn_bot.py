@@ -1,8 +1,9 @@
 from . import ReplayMemory
-from .neural_network import NeuralNetwork, Experience, BatchOfExperiences
+from .simple_neural_network import SimpleNeuralNetwork, Experience, BatchOfExperiences
 from .state_interpreter import InterpretableState
 from .. import SemiRandomBot, Mode
 from ... import Moves, State
+from datetime import datetime
 from random import random
 from typing import List, Optional
 
@@ -39,7 +40,7 @@ class SimpleDqnBot(SemiRandomBot):
         self._current_reward = 0
 
         self._replay_memory = ReplayMemory()
-        self._nn = NeuralNetwork.get_instance()
+        self._nn = self._obtain_neural_network()
 
     @property
     def mode(self) -> Mode:
@@ -71,7 +72,16 @@ class SimpleDqnBot(SemiRandomBot):
         self._prepare_next_round()
 
     def save_model(self, name: Optional[str] = None) -> None:
-        self._nn.save_model(name)
+        if name is None:
+            now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            player_name = self.name.replace(' ', '_').replace('(', '').replace(')', '').strip()
+            name = f'{player_name}_{now}'
+
+        self._nn.save(name)
+
+    @staticmethod
+    def _obtain_neural_network() -> SimpleNeuralNetwork:
+        return SimpleNeuralNetwork()
 
     def _update_states(self, state: State) -> None:
         self._previous_state = self._current_state

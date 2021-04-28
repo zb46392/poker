@@ -1,5 +1,4 @@
-from . import Monitor
-from .. import SimpleDqnBot
+from . import Monitor, SimpleDqnBot
 
 from typing import Dict, Optional
 
