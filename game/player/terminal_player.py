@@ -1,5 +1,5 @@
 from . import Player
-from game import Moves, State
+from game import Moves, State, Phases
 from typing import List, Optional
 import os
 
@@ -14,7 +14,9 @@ class TerminalPlayer(Player):
     def make_move(self, possible_moves: List[Moves], game_state: State) -> Moves:
         choice = None
 
-        if self._current_phase is not game_state.current_phase:
+        if game_state.current_phase is Phases.PRE_FLOP and self._current_phase is not Phases.PRE_FLOP:
+            self._current_phase = Phases.PRE_FLOP
+        elif self._current_phase is not game_state.current_phase:
             self._current_bet = 0
             self._current_phase = game_state.current_phase
 
