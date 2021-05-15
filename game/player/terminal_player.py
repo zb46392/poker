@@ -20,7 +20,7 @@ class TerminalPlayer(Player):
             self._current_bet = 0
             self._current_phase = game_state.current_phase
 
-        current_phase = str(game_state.current_phase)
+        current_phase = str(game_state.current_phase.name)
         pot = str(game_state.pot)
         current_bet = str(game_state.current_bet)
         community_cards = str(game_state.community_cards)[1:-1]

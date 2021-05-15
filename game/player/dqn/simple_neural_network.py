@@ -1,8 +1,7 @@
 from .state_interpreter import InterpretableState
+from game import Utils
 from game.player.dqn.state_interpreter import StateInterpreterV2 as StateInterpreter
 from game.player import Mode
-from datetime import datetime
-from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -42,7 +41,7 @@ class SimpleNeuralNetwork:
         if self.LOAD_PATH is not None:
             self.load(self.LOAD_PATH)
 
-        self._save_dir = self.SAVE_DIR
+        self._save_dir_path = Utils.get_base_dir().joinpath(self.SAVE_DIR)
 
     @property
     def alpha(self) -> float:
@@ -124,13 +123,15 @@ class SimpleNeuralNetwork:
         return pred
 
     def save(self, name: Optional[str] = None) -> None:
-        path = Path(self._save_dir)
+        if not self._save_dir_path.exists():
+            Utils.create_directory(self._save_dir_path)
+
         if name is None:
-            name = f'{type(self).__name__}_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}'
+            name = f'{type(self).__name__}_{Utils.get_now_as_str()}'
 
         name += '.pt'
 
-        torch.save(self._policy_net.state_dict(), path.joinpath(name))
+        torch.save(self._policy_net.state_dict(), self._save_dir_path.joinpath(name))
 
     def load(self, file_path: str) -> None:
         state_dict = torch.load(file_path, map_location=self._device)

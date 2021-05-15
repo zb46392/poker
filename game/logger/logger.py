@@ -1,4 +1,4 @@
-from datetime import datetime
+from game import Utils
 from pathlib import Path
 from typing import Optional
 
@@ -17,9 +17,9 @@ class Logger:
 
     def _create_default_log(self) -> None:
         log_dir_name = 'log'
-        project_path = self._find_project_path()
+        project_path = Utils.get_base_dir()
         log_dir_path = project_path.joinpath(log_dir_name)
-        log_dir_path.mkdir(parents=True, exist_ok=True)
+        Utils.create_directory(log_dir_path)
         self._create_unique_log_file(log_dir_path)
 
     def _ensure_log_directory_existence(self) -> None:
@@ -27,7 +27,7 @@ class Logger:
 
     def _create_unique_log_file(self, log_dir_path: Path) -> None:
         extension = 'txt'
-        log_name = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_name = Utils.get_now_as_str()
         log_path = log_dir_path.joinpath('.'.join([log_name, extension]))
         cnt = 0
 
@@ -39,11 +39,6 @@ class Logger:
             file.write('')
 
         self._log_path = log_path
-
-    @staticmethod
-    def _find_project_path() -> Path:
-        this_path = Path(__file__)
-        return Path(this_path.parent.parent.parent)
 
     def log(self, text: str) -> None:
         with open(str(self._log_path), 'a') as file:

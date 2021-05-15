@@ -1,3 +1,4 @@
+from game import Utils
 import torch
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
@@ -16,12 +17,19 @@ class Monitor:
         self._init_summary_writer()
 
     def _init_summary_writer(self) -> None:
-        comment = self._generate_comment()
-        dummy_data = [0 for _ in range(self._model[0].in_features)]
-        input_to_model = torch.as_tensor(dummy_data, dtype=torch.float32).to(self._device)
+        dummy_input = self._generate_dummy_input()
+        log_dir_path = self._generate_log_dir_path()
 
-        self._summary_writer = SummaryWriter(comment=f' - {comment}')
-        self._summary_writer.add_graph(self._model, input_to_model)
+        self._summary_writer = SummaryWriter(log_dir=str(log_dir_path))
+        self._summary_writer.add_graph(self._model, dummy_input)
+
+    def _generate_dummy_input(self) -> torch.Tensor:
+        dummy_data = [0 for _ in range(self._model[0].in_features)]
+        return torch.as_tensor(dummy_data, dtype=torch.float32).to(self._device)
+
+    def _generate_log_dir_path(self) -> str:
+        comment = self._generate_comment()
+        return str(Utils.get_base_dir().joinpath('runs').joinpath(f'{Utils.get_now_as_str()}: {comment}'))
 
     def _generate_comment(self) -> str:
         comment = ''

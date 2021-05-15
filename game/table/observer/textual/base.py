@@ -28,7 +28,7 @@ class Base(RootBaseObserver, ABC):
         pass
 
     def _acquire_phase_information(self, state: State) -> None:
-        self._phase = f'-------------{str(state.phase)}-------------\n'
+        self._phase = f'-------------{str(state.phase.name)}-------------\n'
 
     def _acquire_state_information(self, state: State) -> None:
         state_info = ''
@@ -40,7 +40,7 @@ class Base(RootBaseObserver, ABC):
             state_info += f'   NAME:\t{player.name}\n'
             state_info += f'   HAND:\t{str(player.get_hand())}\n'
             state_info += f'   CHIPS:\t{str(player.get_amount_of_chips())}\n'
-            state_info += f'   MOVE:\t{str(player.current_move)}\n'
+            state_info += f'   MOVE:\t{str(player.current_move.name if player.current_move is not None else None)}\n'
             state_info += f'   BET:\t\t{str(player.current_bet)}\n'
             state_info += f'   FINAL:\t{str(player.final_hand)}\t{str(player.final_hand_type)}\n'
             state_info += f'   SCORE:\t{str(player.score)}\n'

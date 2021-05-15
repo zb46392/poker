@@ -1,9 +1,8 @@
 from . import ReplayMemory
 from .simple_neural_network import SimpleNeuralNetwork, Experience, BatchOfExperiences
 from .state_interpreter import InterpretableState
-from .. import SemiRandomBot, Mode
-from ... import Moves, State
-from datetime import datetime
+from game import Moves, State, Utils
+from game.player import Mode, SemiRandomBot
 from random import random
 from typing import List, Optional
 
@@ -73,7 +72,7 @@ class SimpleDqnBot(SemiRandomBot):
 
     def save_model(self, name: Optional[str] = None) -> None:
         if name is None:
-            now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            now = Utils.get_now_as_str()
             player_name = self.name.replace(' ', '_').replace('(', '').replace(')', '').strip()
             name = f'{player_name}_{now}'
 
