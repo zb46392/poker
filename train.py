@@ -2,33 +2,38 @@
 
 from game import SemiRandomBot, OpponentBotGold, OpponentBotSilver, SimpleDqnBot, MonitoredSimpleDqnBot, \
     CollectiveSimpleDqnBot
-from game import Table, TrainingTable
+from game import TrainingTable
 from game.table.observer import TerminalTextualObserver, FileTextualObserver
 from game.player import Mode as PlayerMode
 from game.player.dqn import SimpleNeuralNetwork
 from typing import Dict
 import torch
 
+# DQN hyperparameters
 ALPHA = 0.1
 GAMMA = 0.999
 EPSILON = 1.0
-EPSILON_FLOOR = 0.1
 SHOULD_EPSILON_DECAY = True
+EPSILON_FLOOR = 0.1
+SHOULD_SAVE_MODEL = True
+LOAD_MODEL_PATH = None
 
+# Training & validation duration
 TRAINING_EPISODES_AMOUNT = 100
 VALIDATION_EPISODES_AMOUNT = 10
 VALIDATION_AMOUNT = 5
-MONITOR_AMOUNT = VALIDATION_AMOUNT
 
+# Monitoring
+MONITOR_AMOUNT = VALIDATION_AMOUNT
 SHOULD_MONITOR_TRAINING = False
 SHOULD_MONITOR_VALIDATION = True
 SHOULD_SAVE_BEST_AVERAGE = True
 BEST_MODEL_NAME = 'best'
 
-# LOAD_MODEL_PATH = 'models/SimpleDqnBot_model_2020_09_20_19_27_49.weights'
-LOAD_MODEL_PATH = None
-SHOULD_SAVE_MODEL = True
+# Game
 INIT_CHIPS = 10
+SMALL_BET = 2
+BIG_BET = 4
 PLAYERS = [MonitoredSimpleDqnBot, SemiRandomBot, SemiRandomBot]
 
 
@@ -144,9 +149,11 @@ def calculate_epsilon_decay() -> float:
 
 
 def initiate_table() -> TrainingTable:
-    global INIT_CHIPS, PLAYERS
+    global INIT_CHIPS, SMALL_BET, BIG_BET, PLAYERS
 
-    Table.INIT_CHIPS = INIT_CHIPS
+    TrainingTable.INIT_CHIPS = INIT_CHIPS
+    TrainingTable.SMALL_BET = SMALL_BET
+    TrainingTable.BIG_BET = BIG_BET
     table = TrainingTable(PLAYERS)
     table.set_player_mode(PlayerMode.TRAIN)
 

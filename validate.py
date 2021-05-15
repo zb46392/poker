@@ -5,17 +5,19 @@ from game.player import Mode as PlayerMode
 from game.player.dqn import SimpleNeuralNetwork
 
 VALIDATION_EPISODES = 10_000
-LOAD_MODEL_PATH = 'models/model_random_alpha_0_01__6724.pt'
-# LOAD_MODEL_PATH = 'models/model_opponent_alpha_0_1.pt'
-# LOAD_MODEL_PATH = 'models/model_3000_alpha_0_1__6010.pt'
+LOAD_MODEL_PATH = 'models/best.pt'
 INIT_CHIPS = 10
+SMALL_BET = 2
+BIG_BET = 4
 PLAYERS = [SimpleDqnBot, SemiRandomBot, SemiRandomBot]
 
 
 def main() -> None:
-    global VALIDATION_EPISODES, INIT_CHIPS
+    global VALIDATION_EPISODES, INIT_CHIPS, SMALL_BET, BIG_BET
 
     Table.INIT_CHIPS = INIT_CHIPS
+    Table.SMALL_BET = SMALL_BET
+    Table.BIG_BET = BIG_BET
     prepare_dqn()
 
     table = Table(PLAYERS)
