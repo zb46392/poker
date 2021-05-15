@@ -81,4 +81,4 @@ dependencies:
   - yarl=1.6.3=py37h27cfd23_0
   - zipp=3.4.1=pyhd3eb1b0_0
   - zlib=1.2.11=h7b6447c_3
-prefix: /home/zdravko/anaconda3/envs/poker
+prefix: ~/anaconda3/envs/poker
