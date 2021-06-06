@@ -42,6 +42,30 @@ class OpponentBot(Player):
         self._raise_thresh = raise_thresh
         self._bluff_thresh = bluff_thresh
 
+    @property
+    def fold_thresh(self) -> int:
+        return self._fold_thresh
+
+    @fold_thresh.setter
+    def fold_thresh(self, thresh: int) -> None:
+        self._fold_thresh = thresh
+
+    @property
+    def raise_thresh(self) -> int:
+        return self._raise_thresh
+
+    @raise_thresh.setter
+    def raise_thresh(self, thresh: int) -> None:
+        self._raise_thresh = thresh
+
+    @property
+    def bluff_thresh(self) -> int:
+        return self._bluff_thresh
+
+    @bluff_thresh.setter
+    def bluff_thresh(self, thresh: int) -> None:
+        self._bluff_thresh = thresh
+
     @staticmethod
     def _generate_ehs_description() -> str:
         return """
