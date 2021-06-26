@@ -23,6 +23,10 @@ class TrainingTable(Table):
                 self._training_players.append(player.basic_player)
 
     @property
+    def players(self) -> List[BasePlayer]:
+        return [p.basic_player for p in self._players]
+
+    @property
     def trainable_player_names(self) -> List[str]:
         names = [player.name for player in self._training_players]
         return names

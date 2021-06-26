@@ -1,5 +1,2 @@
 .idea
 **/__pycache__
-log/*
-runs/*
-models/*
